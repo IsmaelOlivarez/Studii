@@ -1,0 +1,17 @@
+# Course checkpoints / deliverables (kept local, not pushed)
+checkpoints/
+
+# macOS
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Env / secrets
+.env
+.env.*
+
+# Local AI assistant context
+CLAUDE.md

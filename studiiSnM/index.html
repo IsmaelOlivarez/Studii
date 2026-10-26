@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Studii</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..600&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2ECDE;        /* warm cream */
+  --paper-2:#EBE3D1;      /* slightly deeper */
+  --card:#FBF7EC;         /* raised surface */
+  --ink:#201B14;          /* near-black warm */
+  --ink-soft:#6B6052;     /* muted ink */
+  --ink-faint:#A79C88;    /* faint labels */
+  --line:#D9CFB8;         /* hairlines */
+  --free:#4F8A5B;         /* sage green */
+  --free-soft:#DCE8D4;
+  --limited:#C98A2E;      /* amber */
+  --limited-soft:#F0E2C4;
+  --full:#B0524A;         /* clay red */
+  --full-soft:#EBD3CC;
+  --shadow:28,22,14;
+  --accent:#2C4A6E;       /* deep architectural blue */
+  --radius:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Hanken Grotesk',system-ui,sans-serif;
+  background:#CcC4B0;
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100dvh;
+  overflow:hidden;
+}
+/* ---- device framing ---- */
+.device{
+  position:relative;
+  width:100%;max-width:430px;height:100dvh;max-height:932px;
+  background:var(--paper);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:0 40px 90px -20px rgba(var(--shadow),.55), 0 0 0 1px rgba(var(--shadow),.06);
+}
+@media(min-width:480px){
+  body{background:
+    radial-gradient(130% 90% at 30% 0%, #D7CEB9 0%, #C2B9A2 55%, #ADA48D 100%);}
+  .device{height:92dvh;border-radius:44px;border:10px solid #16130D;
+    box-shadow:0 50px 100px -25px rgba(0,0,0,.6), 0 0 0 11px #2a251c, inset 0 0 0 2px rgba(255,255,255,.04);}
+}
+/* paper grain */
+.device::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:50;opacity:.5;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* ---- status bar ---- */
+.statusbar{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 26px 4px;font:600 14px/1 'Spline Sans Mono',monospace;color:var(--ink);letter-spacing:.02em;flex:0 0 auto}
+.statusbar .dots{display:flex;gap:5px;align-items:center}
+.statusbar .dots span{width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.8}
+.statusbar .batt{width:22px;height:11px;border:1.5px solid var(--ink);border-radius:3px;position:relative;opacity:.8}
+.statusbar .batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:var(--ink);border-radius:0 2px 2px 0}
+.statusbar .batt::before{content:"";position:absolute;inset:1.5px;right:5px;background:var(--ink);border-radius:1px}
+
+/* ---- screens ---- */
+.screens{position:relative;flex:1 1 auto;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+  transition:transform .46s cubic-bezier(.76,0,.24,1), opacity .3s ease;
+  overflow:hidden}
+.screen.map{transform:translateX(0)}
+.screen.detail{transform:translateX(100%)}
+body.view-detail .screen.map{transform:translateX(-26%);opacity:.4}
+body.view-detail .screen.detail{transform:translateX(0)}
+
+.scroll{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+
+/* ================= MAP SCREEN ================= */
+.brand{padding:10px 26px 2px;display:flex;align-items:flex-end;justify-content:space-between}
+.brand h1{font-family:'Fraunces';font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:.9}
+.brand h1 i{font-style:italic;font-weight:500}
+.brand .loc{text-align:right;font-size:11px;line-height:1.3;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.brand .loc b{display:block;color:var(--ink);font-size:12px}
+
+.greet{padding:14px 26px 0}
+.greet .eyebrow{font:600 11px/1 'Spline Sans Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--limited)}
+.greet p{font-family:'Fraunces';font-size:23px;font-weight:400;line-height:1.18;margin-top:9px;color:var(--ink);letter-spacing:-.01em}
+.greet p b{font-weight:600;font-style:italic}
+
+/* ---- Columbia Morningside campus map ---- */
+.map-wrap{margin:16px 20px 6px;position:relative;height:440px;border-radius:var(--radius);
+  background:#E7DFCB;  /* tan campus ground */
+  overflow:hidden;box-shadow:inset 0 0 0 1px var(--line), 0 12px 26px -16px rgba(var(--shadow),.5)}
+/* teal quad zones */
+.zone{position:absolute;left:0;right:0;background:#B9DDD2}
+.zone.north{top:0;height:53%}
+.zone.south{bottom:0;height:40%}
+/* faint path grid over quads */
+.zone::after{content:"";position:absolute;inset:0;opacity:.6;
+  background-image:linear-gradient(#E7DFCB 2px,transparent 2px),linear-gradient(90deg,#E7DFCB 2px,transparent 2px);
+  background-size:26px 26px}
+/* college walk */
+.walk{position:absolute;left:0;right:0;top:53%;height:7%;background:#C9E4DC;
+  display:flex;align-items:center;justify-content:center;z-index:2;
+  box-shadow:inset 0 1px 0 #a9cfc6, inset 0 -1px 0 #a9cfc6}
+.walk::before{content:"";position:absolute;inset:0;opacity:.7;
+  background:repeating-linear-gradient(90deg,transparent 0 16px,#eaf4f0 16px 20px)}
+.walk span{position:relative;font:700 8px/1 'Spline Sans Mono';letter-spacing:.2em;color:#4a7a70;text-transform:uppercase}
+
+/* campus buildings */
+.cb{position:absolute;background:#6CA8D4;border-radius:3px;z-index:3;
+  box-shadow:inset 0 0 0 1px rgba(23,50,77,.22);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font:700 7px/1.05 'Hanken Grotesk';color:#f3f8fc;padding:2px;overflow:hidden;letter-spacing:.01em}
+.cb.lt{background:#8FC0DE;color:#1c3f5e}
+.cb.v{writing-mode:vertical-rl;transform:rotate(180deg)}
+.cb .so{position:absolute;bottom:1px;right:2px;font:700 5.5px/1 'Spline Sans Mono';color:#fff;opacity:.85;letter-spacing:.05em}
+/* lawn labels */
+.lawn{position:absolute;z-index:2;font:600 7.5px/1.1 'Hanken Grotesk';color:#5c8a80;text-align:center}
+.sundial{position:absolute;z-index:4;left:50%;top:60.5%;transform:translateX(-50%);
+  width:10px;height:10px;border-radius:50%;background:#E7DFCB;box-shadow:0 0 0 2px #6CA8D4}
+.sundial span{position:absolute;top:11px;left:50%;transform:translateX(-50%);white-space:nowrap;font:600 6.5px/1 'Spline Sans Mono';color:#4a7a70}
+
+/* Butler — hero */
+.butler{position:absolute;left:27%;top:83.5%;width:46%;height:15%;border-radius:7px;cursor:pointer;z-index:6;
+  background:linear-gradient(160deg,#FBF7EC,#F0E7D1);
+  box-shadow:0 12px 26px -8px rgba(var(--shadow),.5),0 0 0 2.5px var(--accent);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.butler:active{transform:scale(.97)}
+.butler .pillars{display:flex;gap:2.5px;margin-bottom:1px}
+.butler .pillars i{width:2.5px;height:11px;background:var(--accent);opacity:.5;border-radius:1px}
+.butler .nm{font-family:'Fraunces';font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--ink)}
+.butler .sub{font:600 7px/1 'Spline Sans Mono';letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+/* availability ring — overlaps Butler's top edge */
+.ring{position:absolute;left:50%;top:81%;transform:translate(-50%,-50%);z-index:7;
+  width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--card);box-shadow:0 8px 18px -6px rgba(var(--shadow),.5)}
+.ring::before{content:"";position:absolute;inset:-6px;border-radius:50%;z-index:-1;opacity:.5;
+  animation:pulse 2.6s ease-out infinite}
+.ring .cnt{font-family:'Fraunces';font-weight:600;font-size:21px;line-height:1}
+@keyframes pulse{0%{transform:scale(.92);opacity:.5}70%{opacity:0}100%{transform:scale(1.55);opacity:0}}
+
+/* butler summary card */
+.sumcard{margin:4px 20px 22px;background:var(--card);border-radius:var(--radius);padding:18px 20px;
+  box-shadow:0 10px 26px -16px rgba(var(--shadow),.5),inset 0 0 0 1px var(--line);
+  display:flex;align-items:center;gap:16px;cursor:pointer;transition:transform .2s}
+.sumcard:active{transform:scale(.985)}
+.sumcard .stat{width:54px;height:54px;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto}
+.sumcard .stat b{font-family:'Fraunces';font-size:24px;line-height:.9}
+.sumcard .stat em{font:600 8px/1 'Spline Sans Mono';font-style:normal;letter-spacing:.06em;opacity:.7}
+.sumcard .meta{flex:1 1 auto;min-width:0}
+.sumcard .meta h3{font-family:'Fraunces';font-size:19px;font-weight:600;letter-spacing:-.01em}
+.sumcard .meta p{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.3}
+.sumcard .meta .status{font-weight:700}
+.sumcard .arrow{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--paper-2);
+  display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.sumcard .arrow svg{width:14px;height:14px}
+
+/* ================= DETAIL SCREEN ================= */
+.dhead{padding:6px 22px 2px;display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.back{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.back:active{transform:scale(.92)}
+.back svg{width:16px;height:16px}
+.dhead .t h2{font-family:'Fraunces';font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1}
+.dhead .t p{font:600 10px/1 'Spline Sans Mono';text-transform:uppercase;letter-spacing:.14em;color:var(--ink-soft);margin-top:5px}
+
+/* date chips */
+.dates{display:flex;gap:9px;padding:16px 22px 2px;overflow-x:auto}
+.dates::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:9px 15px;border-radius:14px;background:var(--card);border:1px solid var(--line);
+  cursor:pointer;text-align:center;line-height:1.15;transition:.18s}
+.chip em{font-style:normal;font:600 9px/1 'Spline Sans Mono';text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);display:block}
+.chip b{font-family:'Fraunces';font-size:16px;font-weight:600;display:block;margin-top:3px}
+.chip.on{background:var(--ink);border-color:var(--ink)}
+.chip.on em,.chip.on b{color:var(--paper)}
+
+/* time scrubber */
+.timebox{margin:16px 22px 4px;background:var(--card);border-radius:var(--radius);padding:16px 18px 18px;
+  box-shadow:inset 0 0 0 1px var(--line),0 8px 20px -16px rgba(var(--shadow),.5)}
+.timebox .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.timebox .sel{font-family:'Fraunces'}
+.timebox .sel b{font-size:30px;font-weight:600;letter-spacing:-.01em}
+.timebox .sel span{font:500 13px 'Spline Sans Mono';color:var(--ink-soft);margin-left:3px}
+.nowbtn{font:600 10px/1 'Spline Sans Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+  background:none;border:1px solid var(--accent);border-radius:20px;padding:7px 12px;cursor:pointer;transition:.18s}
+.nowbtn.live{background:var(--accent);color:var(--paper)}
+.freenow{font-size:12px;color:var(--ink-soft);margin-bottom:12px;font-weight:500}
+.freenow b{font-weight:700}
+
+.track{position:relative;height:46px;border-radius:12px;overflow:hidden;cursor:pointer;touch-action:none;
+  box-shadow:inset 0 0 0 1px rgba(var(--shadow),.08)}
+.track .seg{position:absolute;top:0;bottom:0}
+.track .nowline{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.4;z-index:3}
+.track .nowline::after{content:"NOW";position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  font:700 7px/1 'Spline Sans Mono';letter-spacing:.1em;color:var(--ink);opacity:.6}
+.thumb{position:absolute;top:50%;z-index:5;transform:translate(-50%,-50%);
+  width:16px;height:52px;border-radius:7px;background:var(--ink);
+  box-shadow:0 4px 12px -2px rgba(var(--shadow),.6),0 0 0 3px var(--paper);pointer-events:none}
+.thumb::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:3px;height:18px;border-radius:2px;background:var(--paper);opacity:.8}
+.ticks{display:flex;justify-content:space-between;margin-top:8px;font:500 9.5px 'Spline Sans Mono';color:var(--ink-faint)}
+
+/* floor plan */
+.floorhead{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:baseline}
+.floorhead h3{font-family:'Fraunces';font-size:17px;font-weight:600}
+.floorhead span{font:600 10px/1 'Spline Sans Mono';text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft)}
+.legend{display:flex;gap:14px;padding:12px 24px 2px}
+.legend i{display:flex;align-items:center;gap:5px;font:600 10px/1 'Hanken Grotesk';color:var(--ink-soft);font-style:normal}
+.legend i b{width:10px;height:10px;border-radius:3px;display:block}
+
+.floor{margin:14px 22px 10px;aspect-ratio:1/.92;position:relative;
+  background:linear-gradient(145deg,#ECE4CF,#E3D9BF);border-radius:18px;
+  box-shadow:inset 0 0 0 1.5px var(--line);padding:12px}
+.floor .core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:40%;height:52%;border-radius:8px;background:repeating-linear-gradient(90deg,#D3C7A8 0 5px,#D9CEB1 5px 10px);
+  box-shadow:inset 0 0 0 1px rgba(var(--shadow),.1);display:flex;align-items:center;justify-content:center}
+.floor .core span{font:600 9px/1.3 'Spline Sans Mono';text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);text-align:center;opacity:.8}
+.floor .nonb{position:absolute;border-radius:7px;background:#E0D6BC;box-shadow:inset 0 0 0 1px rgba(var(--shadow),.08);
+  display:flex;align-items:center;justify-content:center;font:600 8px/1.2 'Hanken Grotesk';color:var(--ink-faint);text-align:center;padding:3px}
+.nonb.west{left:12px;top:22%;width:17%;height:56%}
+.nonb.northc{left:31%;top:12px;width:38%;height:15%}
+.nonb.entry{left:50%;bottom:10px;transform:translateX(-50%);width:34%;height:12%;background:none;box-shadow:none;color:var(--ink-faint)}
+
+.room{position:absolute;border-radius:8px;cursor:pointer;padding:6px 7px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  box-shadow:0 4px 10px -6px rgba(var(--shadow),.5);transition:transform .18s, box-shadow .18s;
+  border:1.5px solid transparent}
+.room:active{transform:scale(.95)}
+.room .rn{font-family:'Fraunces';font-size:14px;font-weight:600;line-height:1}
+.room .rc{font:600 8px/1 'Spline Sans Mono';letter-spacing:.03em;opacity:.8}
+.room .rd{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%}
+.room.free{background:var(--free-soft);border-color:var(--free)}
+.room.free .rn{color:#2f5e39}.room.free .rd{background:var(--free)}
+.room.limited{background:var(--limited-soft);border-color:var(--limited)}
+.room.limited .rn{color:#8a5e15}.room.limited .rd{background:var(--limited)}
+.room.full{background:var(--full-soft);border-color:var(--full)}
+.room.full .rn{color:#7e332c}.room.full .rd{background:var(--full)}
+.room.full{opacity:.85}
+/* east column positions */
+.r403A{right:12px;top:7%;width:24%;height:17%}
+.r404{right:12px;top:27%;width:24%;height:17%}
+.r405{right:12px;top:47%;width:24%;height:17%}
+.r407{right:12px;top:67%;width:24%;height:17%}
+.r408{left:31%;bottom:10px;width:19%;height:17%}
+.r409A{left:52%;bottom:10px;width:19%;height:17%;display:none}
+/* place 408/409 along bottom-east; adjust */
+.r408{left:30%;bottom:28px;width:18%;height:15%}
+.r409A{left:49.5%;bottom:28px;width:18%;height:15%;display:flex}
+
+/* ================= BOTTOM SHEET ================= */
+.sheet-scrim{position:absolute;inset:0;z-index:60;background:rgba(var(--shadow),.4);opacity:0;pointer-events:none;transition:opacity .3s}
+body.sheet-open .sheet-scrim{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:var(--card);
+  border-radius:28px 28px 0 0;padding:10px 24px calc(26px + env(safe-area-inset-bottom));
+  transform:translateY(102%);transition:transform .42s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 -20px 50px -20px rgba(var(--shadow),.5)}
+body.sheet-open .sheet{transform:translateY(0)}
+.sheet .grip{width:40px;height:4px;border-radius:3px;background:var(--line);margin:4px auto 16px}
+.sheet .sh-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.sheet .sh-top h2{font-family:'Fraunces';font-size:30px;font-weight:600;letter-spacing:-.01em;line-height:1}
+.sheet .sh-top .cap{font:600 11px/1 'Spline Sans Mono';text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-top:7px}
+.pill{font:600 11px/1 'Spline Sans Mono';text-transform:uppercase;letter-spacing:.06em;padding:8px 13px;border-radius:20px;white-space:nowrap}
+.pill.free{background:var(--free-soft);color:#2f5e39}
+.pill.limited{background:var(--limited-soft);color:#8a5e15}
+.pill.full{background:var(--full-soft);color:#7e332c}
+
+.sheet .atline{margin:18px 0 8px;font-size:13px;color:var(--ink-soft);font-weight:500}
+.sheet .atline b{color:var(--ink);font-weight:700}
+.daystrip{display:flex;gap:3px;height:38px;margin:6px 0 4px}
+.daystrip .blk{flex:1 1 0;border-radius:4px;position:relative}
+.daystrip .blk.bk{background:var(--full-soft);box-shadow:inset 0 0 0 1px rgba(176,82,74,.3)}
+.daystrip .blk.op{background:var(--free-soft);box-shadow:inset 0 0 0 1px rgba(79,138,91,.25)}
+.daystrip .blk.cur{outline:2px solid var(--ink);outline-offset:1px;z-index:2}
+.striplbl{display:flex;justify-content:space-between;font:500 9px 'Spline Sans Mono';color:var(--ink-faint);margin-top:7px}
+.nextfree{margin-top:16px;font-size:13.5px;line-height:1.4;color:var(--ink)}
+.nextfree b{font-weight:700}
+
+/* booking-span highlight on the day strip */
+.daystrip .blk.plan{background:var(--accent)!important;box-shadow:inset 0 0 0 1px rgba(44,74,110,.5)!important}
+
+/* duration picker */
+.durwrap{margin-top:18px}
+.durlbl{font:600 11px/1 'Spline Sans Mono';text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);
+  display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.durlbl span{font-size:10px;color:var(--ink-faint);letter-spacing:.04em}
+.durrow{display:flex;gap:8px}
+.durchip{flex:1 1 0;padding:12px 4px;border-radius:13px;background:var(--paper-2);border:1.5px solid transparent;
+  cursor:pointer;text-align:center;font-family:'Fraunces';font-size:16px;font-weight:600;color:var(--ink);transition:.16s}
+.durchip small{display:block;font:600 8px/1 'Spline Sans Mono';letter-spacing:.06em;color:var(--ink-soft);margin-top:3px;text-transform:uppercase}
+.durchip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.durchip.on small{color:var(--paper);opacity:.7}
+.durchip[disabled]{opacity:.32;cursor:not-allowed;text-decoration:line-through}
+
+.reserve{margin-top:20px;width:100%;border:none;border-radius:16px;padding:17px;cursor:pointer;
+  background:var(--ink);color:var(--paper);font-family:'Fraunces';font-size:17px;font-weight:600;letter-spacing:.01em;
+  transition:transform .18s, background .3s;display:flex;align-items:center;justify-content:center;gap:9px}
+.reserve:active{transform:scale(.98)}
+.reserve[disabled]{background:var(--full);opacity:.5;cursor:not-allowed}
+.reserve.done{background:var(--free)}
+.reserve svg{width:17px;height:17px}
+.fineprint{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:11px;line-height:1.4}
+
+/* entrance stagger anim */
+.anim{opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.13s}.d3{animation-delay:.22s}.d4{animation-delay:.32s}.d5{animation-delay:.42s}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="statusbar">
+    <span id="clock">9:41</span>
+    <div class="dots"><span></span><span></span><span></span>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none" style="margin-left:2px"><path d="M8.5 2C11 2 13.2 3 14.8 4.6l-1 1C12.5 4.3 10.6 3.5 8.5 3.5S4.5 4.3 3.2 5.6l-1-1C3.8 3 6 2 8.5 2Z" fill="#201B14"/><path d="M8.5 5.5c1.4 0 2.7.6 3.6 1.5l-1 1c-.7-.7-1.6-1-2.6-1s-1.9.3-2.6 1l-1-1c.9-.9 2.2-1.5 3.6-1.5Z" fill="#201B14"/><circle cx="8.5" cy="9.5" r="1.6" fill="#201B14"/></svg>
+      <span class="batt"></span>
+    </div>
+  </div>
+
+  <div class="screens">
+    <!-- ============ MAP SCREEN ============ -->
+    <section class="screen map">
+      <div class="scroll">
+        <div class="brand anim d1">
+          <h1>Stud<i>ii</i></h1>
+          <div class="loc">Columbia<b>Morningside</b></div>
+        </div>
+        <div class="greet anim d2">
+          <div class="eyebrow">Midterm season · live</div>
+          <p>Don't wander the stacks.<br><b>See what's open</b> before you walk over.</p>
+        </div>
+
+        <div class="map-wrap anim d3">
+          <div class="zone north"></div>
+          <div class="zone south"></div>
+          <div class="walk"><span>College Walk</span></div>
+
+          <!-- NORTH QUAD -->
+          <div class="cb" style="left:5%;top:1.5%;width:21%;height:6%">Pupin</div>
+          <div class="cb" style="left:38%;top:1.5%;width:23%;height:7%">Schapiro</div>
+          <div class="cb" style="left:72%;top:1.5%;width:23%;height:6%">Mudd</div>
+          <div class="cb v lt" style="left:0.5%;top:1.5%;width:5%;height:13%">NW Corner</div>
+          <div class="cb v lt" style="left:0.5%;top:16%;width:5%;height:11%">Chandler</div>
+          <div class="cb" style="left:7%;top:16%;width:17%;height:8%">Havemeyer</div>
+          <div class="cb lt" style="left:35%;top:10%;width:27%;height:6.5%">University Hall</div>
+          <div class="cb" style="left:33%;top:18%;width:31%;height:10%">Uris<span class="so">soon</span></div>
+          <div class="cb v" style="left:65%;top:9%;width:8%;height:16%">Fairchild</div>
+          <div class="cb v" style="left:84%;top:9%;width:12%;height:16%">Comp Sci</div>
+          <div class="cb v lt" style="left:0.5%;top:29%;width:5%;height:12%">Math</div>
+          <div class="cb" style="left:13%;top:31%;width:15%;height:8%">Earl</div>
+          <div class="cb" style="left:34%;top:31%;width:29%;height:13%;font-size:9px;font-weight:800">Low Library</div>
+          <div class="cb" style="left:68%;top:29%;width:14%;height:7%">Avery<span class="so">soon</span></div>
+          <div class="cb v" style="left:84%;top:27%;width:12%;height:12%">Scherm</div>
+          <div class="cb v lt" style="left:84%;top:40%;width:12%;height:9%">Fayer</div>
+          <div class="cb lt" style="left:63%;top:45%;width:11%;height:6%">Buell</div>
+          <div class="cb lt" style="left:76%;top:39%;width:11%;height:7%">St&nbsp;Paul's</div>
+          <div class="cb v lt" style="left:0.5%;top:41%;width:5%;height:10%">Lewisohn</div>
+          <div class="cb" style="left:7%;top:45%;width:19%;height:6%">Dodge</div>
+          <div class="cb" style="left:77%;top:47.5%;width:19%;height:5.5%">Kent</div>
+
+          <!-- SOUTH QUAD -->
+          <div class="cb" style="left:5%;top:63%;width:19%;height:6.5%">Pulitzer</div>
+          <div class="cb v lt" style="left:0.5%;top:71%;width:5%;height:12%">Furnald</div>
+          <div class="cb" style="left:75%;top:63%;width:20%;height:6.5%">Hamilton</div>
+          <div class="cb v lt" style="left:90%;top:71%;width:5%;height:12%">Hartley</div>
+          <div class="cb v lt" style="left:90%;top:84%;width:5%;height:13%">Wallach</div>
+          <div class="lawn" style="left:28%;top:70%;width:19%">South Field<br>West</div>
+          <div class="lawn" style="left:52%;top:70%;width:19%">South Field<br>East</div>
+          <div class="sundial"><span>Sundial</span></div>
+          <div class="cb lt" style="left:3%;top:84.5%;width:22%;height:5%;font-size:6px">Bookstore</div>
+          <div class="cb" style="left:3%;top:90%;width:22%;height:8.5%">Lerner Hall</div>
+          <div class="cb" style="left:74%;top:86%;width:21%;height:8%">John Jay</div>
+
+          <!-- availability ring + Butler hero -->
+          <div class="ring" id="mapRing"><span class="cnt" id="ringCnt">–</span></div>
+          <div class="butler" id="butlerBtn">
+            <div class="pillars"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="nm">Butler Library</div>
+            <div class="sub">Group Study · Floor 4</div>
+          </div>
+        </div>
+
+        <div class="sumcard anim d4" id="sumCard">
+          <div class="stat" id="sumStat"><b id="sumNum">–</b><em>OF 6</em></div>
+          <div class="meta">
+            <h3>Butler Library</h3>
+            <p><span class="status" id="sumStatus">checking…</span> · 6 group study rooms</p>
+          </div>
+          <div class="arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DETAIL SCREEN ============ -->
+    <section class="screen detail">
+      <div class="dhead">
+        <div class="back" id="backBtn"><svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="t"><h2>Butler Library</h2><p>Floor 4 — Group Study</p></div>
+      </div>
+      <div class="scroll">
+        <div class="dates" id="dates"></div>
+
+        <div class="timebox">
+          <div class="row">
+            <div class="sel"><b id="selTime">9:41</b><span id="selMer">am</span></div>
+            <button class="nowbtn live" id="nowBtn">● Now</button>
+          </div>
+          <div class="freenow" id="freeNow">—</div>
+          <div class="track" id="track">
+            <div class="nowline" id="nowLine"></div>
+            <div class="thumb" id="thumb"></div>
+          </div>
+          <div class="ticks"><span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>12a</span></div>
+        </div>
+
+        <div class="floorhead">
+          <h3>Floor plan</h3><span id="floorTime">at 9:41 am</span>
+        </div>
+        <div class="legend">
+          <i><b style="background:var(--free)"></b>Open</i>
+          <i><b style="background:var(--limited)"></b>Opening soon</i>
+          <i><b style="background:var(--full)"></b>Booked</i>
+        </div>
+
+        <div class="floor" id="floor">
+          <div class="nonb northc">Milstein Reading Room 403</div>
+          <div class="nonb west">PMRR 401</div>
+          <div class="core"><span>Stacks<br>Core</span></div>
+          <div class="nonb entry">▽ Elevators · Entrance</div>
+          <!-- rooms injected -->
+        </div>
+        <div style="height:14px"></div>
+      </div>
+    </section>
+
+    <!-- bottom sheet -->
+    <div class="sheet-scrim" id="scrim"></div>
+    <div class="sheet" id="sheet">
+      <div class="grip"></div>
+      <div class="sh-top">
+        <div><h2 id="shName">Room</h2><div class="cap" id="shCap">Seats —</div></div>
+        <div class="pill" id="shPill">—</div>
+      </div>
+      <div class="atline" id="shAt">—</div>
+      <div class="daystrip" id="daystrip"></div>
+      <div class="striplbl"><span>8a</span><span>2p</span><span>8p</span><span>12a</span></div>
+      <div class="nextfree" id="shNext">—</div>
+      <div class="durwrap" id="durWrap">
+        <div class="durlbl">How long? <span>max 2 hrs</span></div>
+        <div class="durrow" id="durRow"></div>
+      </div>
+      <button class="reserve" id="reserveBtn">Reserve this room</button>
+      <div class="fineprint">Opens Butler's booking page for this room &amp; date — log in with your UNI to confirm</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========================================================================
+   FAKE DATA  — Wizard-of-Oz lever.
+   Edit busy[] ranges live during testing to flip rooms open/booked.
+   Shape mirrors the real LibCal /spaces/availability/grid response so this
+   can later be swapped for live Columbia data with minimal rework.
+   ======================================================================== */
+const DAY_START = 8*60, DAY_END = 24*60;   // minutes (8:00 AM – 12:00 AM)
+
+// spaceId = real Columbia LibCal space id (for deep-linking to the live booking page)
+const ROOMS = [
+  {id:"403A", cap:8, spaceId:116915},
+  {id:"404",  cap:6, spaceId:116916},
+  {id:"405",  cap:6, spaceId:116917},
+  {id:"407",  cap:4, spaceId:116918},
+  {id:"408",  cap:6, spaceId:116919},
+  {id:"409A", cap:8, spaceId:116920},
+];
+const LIBCAL_BASE = "https://seats.library.columbia.edu/space/";
+
+// busy ranges per DATE INDEX per room id. ["HH:MM","HH:MM"]
+const SCHEDULE = {
+  0:{ // Today — packed (midterms)
+    "403A":[["09:00","11:00"],["13:00","16:30"],["18:00","20:00"]],
+    "404" :[["08:00","10:00"],["12:00","14:30"],["17:00","23:00"]],
+    "405" :[["10:00","12:00"],["15:00","16:30"],["20:00","22:00"]],
+    "407" :[["09:00","21:00"]],
+    "408" :[["08:30","09:30"],["11:00","13:30"],["19:00","24:00"]],
+    "409A":[["08:00","12:00"],["14:00","18:00"],["21:00","23:00"]],
+  },
+  1:{ // Tomorrow — medium
+    "403A":[["10:00","13:00"],["16:00","18:00"]],
+    "404" :[["09:00","11:30"],["15:00","17:00"]],
+    "405" :[["13:00","15:00"]],
+    "407" :[["08:00","10:00"],["12:00","14:00"],["18:00","20:00"]],
+    "408" :[["11:00","12:00"],["20:00","22:00"]],
+    "409A":[["09:00","12:00"],["17:00","19:00"]],
+  },
+  2:{ // +2 — light
+    "403A":[["14:00","16:00"]],
+    "404" :[["10:00","11:00"],["19:00","21:00"]],
+    "405" :[["09:00","10:30"]],
+    "407" :[["13:00","15:00"]],
+    "408" :[["16:00","18:00"]],
+    "409A":[["11:00","12:00"]],
+  },
+};
+
+/* ---------- time helpers ---------- */
+const toMin = s => (+s.slice(0,2))*60 + (+s.slice(3));
+function fmt(min){
+  let h=Math.floor(min/60)%24, m=min%60;
+  const mer = h<12?"am":"pm"; let hh=h%12; if(hh===0)hh=12;
+  return {h:hh, m, mer, str:`${hh}:${String(m).padStart(2,"0")}`};
+}
+function busyAt(dateIdx, roomId, min){
+  return (SCHEDULE[dateIdx][roomId]||[]).some(([a,b]) => min>=toMin(a) && min<toMin(b));
+}
+function freeCountAt(dateIdx, min){
+  return ROOMS.filter(r => !busyAt(dateIdx, r.id, min)).length;
+}
+// next time a room frees up (or null if free now / never today)
+function nextOpen(dateIdx, roomId, min){
+  for(let t=min; t<DAY_END; t+=15){ if(!busyAt(dateIdx,roomId,t)) return t; }
+  return null;
+}
+// how long until a currently-free room gets booked
+function openUntil(dateIdx, roomId, min){
+  for(let t=min; t<DAY_END; t+=15){ if(busyAt(dateIdx,roomId,t)) return t; }
+  return DAY_END;
+}
+
+/* ---------- state ---------- */
+const MAX_DUR = 120;              // rooms bookable up to 2 hrs
+const DUR_OPTS = [30,60,90,120];  // minutes
+let dateIdx = 0;
+let selMin = clampNow();
+let selDur = 120;                 // chosen booking length (min)
+let live = true;
+let activeRoom = null;
+
+function clampNow(){
+  const d=new Date(); let m=d.getHours()*60+d.getMinutes();
+  return Math.min(Math.max(m, DAY_START), DAY_END-15);
+}
+
+/* ---------- availability color ---------- */
+function cntClass(c){ // c of 6
+  if(c<=1) return "full";
+  if(c<=3) return "limited";
+  return "free";
+}
+function cntColorVar(c){
+  if(c<=1) return "var(--full)";
+  if(c<=3) return "var(--limited)";
+  return "var(--free)";
+}
+
+/* ========================================================================
+   RENDER
+   ======================================================================== */
+const $ = s => document.querySelector(s);
+
+/* date chips */
+function buildDates(){
+  const wrap = $("#dates"); wrap.innerHTML="";
+  const base = new Date();
+  for(let i=0;i<5;i++){
+    const d=new Date(base); d.setDate(base.getDate()+i);
+    const el=document.createElement("div");
+    el.className="chip"+(i===dateIdx?" on":"");
+    const lbl = i===0?"Today":i===1?"Tom":d.toLocaleDateString("en",{weekday:"short"});
+    el.innerHTML=`<em>${lbl}</em><b>${d.getDate()}</b>`;
+    el.onclick=()=>{ dateIdx = i<3?i:2; buildDates(); renderAll(); };
+    wrap.appendChild(el);
+  }
+}
+
+/* map summary */
+function renderMap(){
+  const c = freeCountAt(dateIdx, selMin);
+  $("#ringCnt").textContent = c;
+  $("#sumNum").textContent = c;
+  const cls = cntClass(c);
+  const col = cntColorVar(c);
+  $("#mapRing").querySelector(".cnt").style.color = col;
+  $("#mapRing").style.boxShadow = `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${col}`;
+  // ring pulse color
+  let st = document.getElementById("ringPulse");
+  if(!st){st=document.createElement("style");st.id="ringPulse";document.head.appendChild(st);}
+  st.textContent = `.ring::before{background:${col}}`;
+  const stat = $("#sumStat");
+  stat.style.background = `var(--${cls}-soft)`;
+  $("#sumNum").style.color = col;
+  const words = c===0?"Fully booked":c<=1?"Nearly full":c<=3?"Filling up":"Plenty open";
+  $("#sumStatus").textContent = words + " now";
+  $("#sumStatus").style.color = col;
+}
+
+/* time scrubber */
+function renderTrack(){
+  const track = $("#track");
+  track.querySelectorAll(".seg").forEach(e=>e.remove());
+  const span = DAY_END-DAY_START;
+  const step = 20; // minutes per segment
+  for(let t=DAY_START; t<DAY_END; t+=step){
+    const c = freeCountAt(dateIdx, t);
+    const seg=document.createElement("div");
+    seg.className="seg";
+    seg.style.left = ((t-DAY_START)/span*100)+"%";
+    seg.style.width = (step/span*100)+"%";
+    seg.style.background = cntColorVar(c);
+    seg.style.opacity = c===0?.4:(0.35+0.11*Math.min(c,6));
+    track.insertBefore(seg, $("#nowLine"));
+  }
+  // now line
+  const now = clampNow();
+  const today = dateIdx===0;
+  $("#nowLine").style.display = today?"block":"none";
+  if(today) $("#nowLine").style.left = ((now-DAY_START)/span*100)+"%";
+  // thumb
+  $("#thumb").style.left = ((selMin-DAY_START)/span*100)+"%";
+  // selected label
+  const f=fmt(selMin);
+  $("#selTime").textContent = f.str; $("#selMer").textContent = f.mer;
+  $("#floorTime").textContent = `at ${f.str} ${f.mer}`;
+  const c = freeCountAt(dateIdx, selMin);
+  $("#freeNow").innerHTML = `<b>${c}</b> of 6 rooms open at ${f.str} ${f.mer}`;
+  $("#nowBtn").classList.toggle("live", live && today);
+  $("#nowBtn").innerHTML = (live&&today) ? "● Now" : "Jump to now";
+}
+
+/* floor plan rooms */
+function renderFloor(){
+  const floor = $("#floor");
+  floor.querySelectorAll(".room").forEach(e=>e.remove());
+  ROOMS.forEach(r=>{
+    const busy = busyAt(dateIdx, r.id, selMin);
+    let cls="free";
+    if(busy) cls="full";
+    else { // free — is it opening-soon-booked? mark limited if books within 30min
+      const until = openUntil(dateIdx, r.id, selMin);
+      if(until - selMin <= 30) cls="limited";
+    }
+    const el=document.createElement("div");
+    el.className=`room r${r.id} ${cls}`;
+    el.innerHTML=`<span class="rd"></span><span class="rn">${r.id}</span><span class="rc">${r.cap} seats</span>`;
+    el.onclick=()=>openSheet(r.id);
+    floor.appendChild(el);
+  });
+}
+
+function renderAll(){ renderMap(); renderTrack(); renderFloor(); if(activeRoom) fillSheet(activeRoom); }
+
+/* ========================================================================
+   BOTTOM SHEET
+   ======================================================================== */
+function openSheet(id){ activeRoom=id; fillSheet(id); document.body.classList.add("sheet-open"); }
+function closeSheet(){ document.body.classList.remove("sheet-open"); activeRoom=null; }
+
+function fillSheet(id){
+  const r = ROOMS.find(x=>x.id===id);
+  const busy = busyAt(dateIdx, id, selMin);
+  const f=fmt(selMin);
+  $("#shName").textContent = "Room "+id;
+  $("#shCap").textContent = `Seats ${r.cap} · Butler Fl 4`;
+  const pill=$("#shPill");
+  const until = openUntil(dateIdx, id, selMin);   // first booked slot at/after selMin
+  const freeWin = until - selMin;                 // minutes free from selMin
+  const maxDur = Math.min(MAX_DUR, freeWin);      // can't book past a booking, or past 2 hrs
+  const limited = !busy && (freeWin<=30);
+  pill.className = "pill "+(busy?"full":limited?"limited":"free");
+  pill.textContent = busy?"Booked":limited?"Opens soon":"Open";
+  $("#shAt").innerHTML = `Status at <b>${f.str} ${f.mer}</b>, ${chipLabel()}`;
+
+  // clamp chosen duration to what's actually available (snap to 30-min grid)
+  let dur = Math.min(selDur, Math.floor(maxDur/30)*30);
+  if(dur<30) dur = maxDur>=30 ? Math.floor(maxDur/30)*30 : 0;
+  selDur = dur || selDur;
+  const endMin = selMin + (dur||0);
+
+  // day strip (30-min blocks) + planned booking span highlight
+  const strip=$("#daystrip"); strip.innerHTML="";
+  for(let t=DAY_START;t<DAY_END;t+=30){
+    const b=document.createElement("div");
+    const bk=busyAt(dateIdx,id,t);
+    b.className="blk "+(bk?"bk":"op");
+    if(!busy && dur && t>=selMin && t<endMin) b.classList.add("plan");
+    else if(selMin>=t && selMin<t+30) b.classList.add("cur");
+    strip.appendChild(b);
+  }
+  // next-change message
+  let msg;
+  if(busy){
+    const no=nextOpen(dateIdx,id,selMin);
+    msg = no!==null ? `Frees up at <b>${fmt(no).str} ${fmt(no).mer}</b>.` : `Booked for the rest of the day.`;
+  } else {
+    msg = until<DAY_END ? `Open now — stays free until <b>${fmt(until).str} ${fmt(until).mer}</b>.`
+                        : `Open now — <b>free all evening.</b>`;
+  }
+  $("#shNext").innerHTML = msg;
+
+  // duration picker — only when the room is bookable now
+  const durWrap=$("#durWrap");
+  durWrap.style.display = (busy || maxDur<30) ? "none" : "block";
+  if(!busy && maxDur>=30){
+    const row=$("#durRow"); row.innerHTML="";
+    DUR_OPTS.forEach(opt=>{
+      const c=document.createElement("button");
+      const ok = opt<=maxDur;
+      c.className="durchip"+(opt===dur?" on":"");
+      c.disabled=!ok;
+      c.innerHTML = `${durLabel(opt)}<small>${opt} min</small>`;
+      if(ok) c.onclick=()=>{ selDur=opt; fillSheet(id); };
+      row.appendChild(c);
+    });
+  }
+
+  const btn=$("#reserveBtn");
+  btn.className="reserve";
+  if(busy){ btn.disabled=true; btn.textContent="Booked at this time"; }
+  else if(maxDur<30){ btn.disabled=true; btn.textContent=`Books in ${maxDur} min — too soon`; }
+  else {
+    btn.disabled=false;
+    const e=fmt(endMin);
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Reserve · ${f.str}–${e.str} ${e.mer}`;
+  }
+}
+function durLabel(min){
+  if(min<60) return min+"m";
+  const h=Math.floor(min/60), r=min%60;
+  return h + (r===30?"½":"") + "h";
+}
+// YYYY-MM-DD for a given date offset (local time, not UTC)
+function ymd(idx){
+  const d=new Date(); d.setDate(d.getDate()+idx);
+  const m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+// deep link straight to this room's live Columbia booking page on the chosen date
+function libcalURL(roomId, idx){
+  const r=ROOMS.find(x=>x.id===roomId);
+  return `${LIBCAL_BASE}${r.spaceId}?date=${ymd(idx)}`;
+}
+function chipLabel(){
+  const base=new Date(); base.setDate(base.getDate()+dateIdx);
+  return dateIdx===0?"today":dateIdx===1?"tomorrow":base.toLocaleDateString("en",{weekday:"long"});
+}
+
+$("#reserveBtn").onclick=function(){
+  if(this.disabled || !activeRoom) return;
+  // hand off to the real LibCal booking page for this room + date (user logs in & confirms there)
+  window.open(libcalURL(activeRoom, dateIdx), "_blank", "noopener");
+  this.classList.add("done");
+  this.innerHTML=`<svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Opening Butler booking…`;
+  this.disabled=true;
+  setTimeout(()=>{ closeSheet(); setTimeout(()=>{this.classList.remove("done");this.disabled=false; if(activeRoom)fillSheet(activeRoom);},500); }, 1300);
+};
+
+/* ========================================================================
+   SCRUBBER INTERACTION
+   ======================================================================== */
+const track=$("#track");
+function setFromX(clientX){
+  const rect=track.getBoundingClientRect();
+  let ratio=(clientX-rect.left)/rect.width;
+  ratio=Math.min(Math.max(ratio,0),1);
+  selMin = DAY_START + Math.round(ratio*(DAY_END-DAY_START)/15)*15;
+  selMin=Math.min(selMin,DAY_END-15);
+  live=false;
+  renderAll();
+}
+let dragging=false;
+track.addEventListener("pointerdown",e=>{dragging=true;track.setPointerCapture(e.pointerId);setFromX(e.clientX);});
+track.addEventListener("pointermove",e=>{if(dragging)setFromX(e.clientX);});
+track.addEventListener("pointerup",()=>dragging=false);
+track.addEventListener("pointercancel",()=>dragging=false);
+
+$("#nowBtn").onclick=()=>{ dateIdx=0; selMin=clampNow(); live=true; buildDates(); renderAll(); };
+
+/* ========================================================================
+   NAV
+   ======================================================================== */
+$("#butlerBtn").onclick=()=>document.body.classList.add("view-detail");
+$("#sumCard").onclick=()=>document.body.classList.add("view-detail");
+$("#backBtn").onclick=()=>document.body.classList.remove("view-detail");
+$("#scrim").onclick=closeSheet;
+
+/* live clock in status bar + "now" tracking */
+function tick(){
+  const d=new Date();
+  let h=d.getHours()%12; if(h===0)h=12;
+  $("#clock").textContent=`${h}:${String(d.getMinutes()).padStart(2,"0")}`;
+  if(live && dateIdx===0){ selMin=clampNow(); renderAll(); }
+}
+setInterval(tick,30000);
+
+/* ---------- init ---------- */
+buildDates();
+renderAll();
+tick();
+</script>
+</body>
+</html>
