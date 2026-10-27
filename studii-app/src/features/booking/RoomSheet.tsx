@@ -68,7 +68,7 @@ export function RoomSheet({
 
   const onReserve = () => {
     if (!room || busyNow || maxDur < 30) return;
-    window.open(libcalDeepLink("butler", room.id, date), "_blank", "noopener");
+    window.open(libcalDeepLink("butler", room.id, date, selMin), "_blank", "noopener");
     setReserved(true);
     setTimeout(() => {
       onClose();
@@ -141,7 +141,7 @@ export function RoomSheet({
                     : `Reserve · ${f.str}–${e.str} ${e.mer}`}
             </button>
             <div className={styles.fineprint}>
-              Opens Butler&apos;s booking page for this room &amp; date — log in with your UNI to confirm
+              Opens Butler&apos;s booking page with this room, date &amp; start time pre-selected — set your length, log in with your UNI to confirm
             </div>
           </>
         )}
