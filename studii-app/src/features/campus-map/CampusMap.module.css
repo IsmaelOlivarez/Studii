@@ -24,22 +24,23 @@
   box-shadow:inset 0 1px 0 #a9cfc6, inset 0 -1px 0 #a9cfc6}
 .walk::before{content:"";position:absolute;inset:0;opacity:.7;
   background:repeating-linear-gradient(90deg,transparent 0 16px,#eaf4f0 16px 20px)}
-.walk span{position:relative;font-family:var(--font-mono);font-weight:700;font-size:8px;line-height:1;letter-spacing:.2em;color:#4a7a70;text-transform:uppercase}
+.walk span{position:relative;font-family:var(--font-mono);font-weight:700;font-size:9px;line-height:1;letter-spacing:.2em;color:#3a6358;text-transform:uppercase}
 
 .cb{position:absolute;z-index:3;border-radius:4px;
   background:linear-gradient(165deg,#90b9d7,#6b95bb);
   box-shadow:0 2px 4px -1px rgba(23,50,77,.24), inset 0 1px 0 rgba(255,255,255,.32);
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;
-  font-family:var(--font-ui);font-weight:700;font-size:6.5px;line-height:1.05;
-  color:#f6fafd;padding:2px;overflow:hidden;letter-spacing:.01em;white-space:nowrap}
-.lt{background:linear-gradient(165deg,#b4d1e5,#92bbda);color:#234863}
+  font-family:var(--font-ui);font-weight:700;font-size:8px;line-height:1.05;
+  color:#fff;text-shadow:0 1px 2px rgba(14,32,52,.45);
+  padding:2px 3px;overflow:hidden;letter-spacing:0;white-space:nowrap}
+.lt{background:linear-gradient(165deg,#bcd7e9,#9cc2df);color:#17344d;text-shadow:0 1px 1px rgba(255,255,255,.4)}
 .v{writing-mode:vertical-rl;transform:rotate(180deg)}
-.so{font-family:var(--font-mono);font-weight:700;font-size:4.5px;line-height:1;
-  color:#fff;opacity:.85;letter-spacing:.06em;text-transform:uppercase}
-.lawn{position:absolute;z-index:2;font-family:var(--font-ui);font-weight:600;font-size:7.5px;line-height:1.1;color:#5c8a80;text-align:center}
+.so{font-family:var(--font-mono);font-weight:700;font-size:6px;line-height:1;
+  color:#fff;opacity:.95;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 1px 2px rgba(14,32,52,.5)}
+.lawn{position:absolute;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:9px;line-height:1.15;color:#3f7064;text-align:center}
 .sundial{position:absolute;z-index:4;left:50%;top:71%;transform:translateX(-50%);
   width:10px;height:10px;border-radius:50%;background:var(--campus-ground);box-shadow:0 0 0 2px var(--campus-building)}
-.sundial span{position:absolute;top:11px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--font-mono);font-weight:600;font-size:6.5px;line-height:1;color:#4a7a70}
+.sundial span{position:absolute;top:11px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--font-mono);font-weight:700;font-size:8px;line-height:1;color:#3a6358}
 
 .butler{position:absolute;left:28%;top:85%;width:44%;height:14%;border-radius:7px;cursor:pointer;z-index:6;border:none;
   background:linear-gradient(160deg,#fbf7ec,#f0e7d1);

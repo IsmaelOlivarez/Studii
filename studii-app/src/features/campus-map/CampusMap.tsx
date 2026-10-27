@@ -44,24 +44,24 @@ export function CampusMap({ freeNow, onEnter }: { freeNow: number; onEnter: () =
 
         {/* NORTH — University Hall + Uris (centered spine) */}
         <div className={`${B.cb} ${B.lt}`} style={{ left: "38%", top: "11%", width: "24%", height: "8%" }}>University Hall</div>
-        <div className={B.cb} style={{ left: "35%", top: "20%", width: "30%", height: "18%" }}>Uris<span className={B.so}>soon</span></div>
+        <div className={B.cb} style={{ left: "35%", top: "20%", width: "30%", height: "18%", fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 600 }}>Uris<span className={B.so}>soon</span></div>
 
         {/* NORTH — Havemeyer | · | Schermerhorn (mirrored) */}
-        <div className={B.cb} style={{ left: "11%", top: "22%", width: "18%", height: "11%" }}>Havemeyer</div>
-        <div className={B.cb} style={{ left: "71%", top: "22%", width: "18%", height: "11%" }}>Schermerhorn</div>
+        <div className={B.cb} style={{ left: "11%", top: "19%", width: "16%", height: "11%" }}>Havemeyer</div>
+        <div className={B.cb} style={{ left: "73%", top: "19%", width: "16%", height: "11%" }}>Schermerhorn</div>
 
         {/* NORTH — Low Library + Earl | Avery (mirrored, between Math/Lewisohn level) */}
         <div className={B.cb} style={{ left: "11%", top: "39.5%", width: "12%", height: "6%" }}>Earl</div>
-        <div className={B.cb} style={{ left: "35%", top: "40%", width: "30%", height: "14%", fontSize: "9px", fontWeight: 800 }}>Low Library</div>
-        <div className={B.cb} style={{ left: "77%", top: "34%", width: "12%", height: "6%" }}>Avery<span className={B.so}>soon</span></div>
+        <div className={B.cb} style={{ left: "35%", top: "40%", width: "30%", height: "14%", fontSize: "11px", fontWeight: 800 }}>Low Library</div>
+        <div className={B.cb} style={{ left: "73%", top: "34%", width: "10%", height: "10%" }}>Avery<span className={B.so}>soon</span></div>
 
         {/* NORTH — Dodge | Kent (mirrored) */}
         <div className={B.cb} style={{ left: "11%", top: "50%", width: "18%", height: "5%" }}>Dodge</div>
         <div className={B.cb} style={{ left: "71%", top: "50%", width: "18%", height: "5%" }}>Kent</div>
 
         {/* SOUTH — Pulitzer | Hamilton (mirrored) */}
-        <div className={B.cb} style={{ left: "9%", top: "64%", width: "18%", height: "6.5%" }}>Pulitzer</div>
-        <div className={B.cb} style={{ left: "73%", top: "64%", width: "18%", height: "6.5%" }}>Hamilton</div>
+        <div className={B.cb} style={{ left: "11%", top: "64%", width: "18%", height: "6.5%" }}>Pulitzer</div>
+        <div className={B.cb} style={{ left: "71%", top: "64%", width: "18%", height: "6.5%" }}>Hamilton</div>
 
         {/* SOUTH — Furnald | Hartley (mirrored edge verticals) */}
         <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "72%", width: "6%", height: "13%" }}>Furnald</div>
