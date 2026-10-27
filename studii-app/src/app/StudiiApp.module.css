@@ -17,10 +17,10 @@
 
 .screens{position:relative;flex:1 1 auto;overflow:hidden}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;
-  transition:transform .46s cubic-bezier(.76,0,.24,1), opacity .3s ease}
+  transition:transform .46s cubic-bezier(.76,0,.24,1), opacity .3s ease, filter .4s ease}
 .mapScreen{transform:translateX(0)}
 .detailScreen{transform:translateX(100%)}
-.showDetail .mapScreen{transform:translateX(-26%);opacity:.4}
+.showDetail .mapScreen{transform:translateX(-26%);opacity:.4;filter:blur(7px)}
 .showDetail .detailScreen{transform:translateX(0)}
 
 .scroll{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
@@ -33,4 +33,4 @@
 .back:active{transform:scale(.92)}
 .back svg{width:16px;height:16px}
 .dtitle h2{font-family:var(--font-display);font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1}
-.dtitle p{font:600 10px/1 var(--font-mono);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-soft);margin-top:5px}
+.dtitle p{font-family:var(--font-mono);font-weight:600;font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-soft);margin-top:5px}

@@ -1,7 +1,7 @@
 .statusbar{
   display:flex;justify-content:space-between;align-items:center;
   padding:14px 26px 4px;
-  font:600 14px/1 var(--font-mono);color:var(--ink);letter-spacing:.02em;flex:0 0 auto;
+  font-family:var(--font-mono);font-weight:600;font-size:14px;line-height:1;color:var(--ink);letter-spacing:.02em;flex:0 0 auto;
 }
 .dots{display:flex;gap:5px;align-items:center}
 .dots span{width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.8}

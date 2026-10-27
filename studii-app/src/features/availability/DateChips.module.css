@@ -2,7 +2,7 @@
 .dates::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;padding:9px 15px;border-radius:14px;background:var(--card);border:1px solid var(--line);
   cursor:pointer;text-align:center;line-height:1.15;transition:.18s}
-.chip em{font-style:normal;font:600 9px/1 var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);display:block}
+.chip em{font-style:normal;font-family:var(--font-mono);font-weight:600;font-size:9px;line-height:1;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);display:block}
 .chip b{font-family:var(--font-display);font-size:16px;font-weight:600;display:block;margin-top:3px;color:var(--ink)}
 .on{background:var(--ink);border-color:var(--ink)}
 .on em,.on b{color:var(--paper)}
