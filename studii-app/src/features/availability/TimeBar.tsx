@@ -60,6 +60,10 @@ export function TimeBar({
   const c = freeCount(day, selMin);
   const liveNow = live && isToday;
 
+  // Grey out everything before now (today only), snapped down to a 15-min mark.
+  const pastCutoff = Math.floor(nowMin / 15) * 15;
+  const pastPct = ((pastCutoff - DAY_START) / SPAN) * 100;
+
   return (
     <div className={styles.timebox}>
       <div className={styles.row}>
@@ -87,6 +91,9 @@ export function TimeBar({
         onPointerCancel={() => (dragging.current = false)}
       >
         {segs}
+        {isToday && pastPct > 0 && (
+          <div className={styles.past} style={{ width: `${pastPct}%` }} />
+        )}
         {isToday && (
           <div className={styles.nowline} style={{ left: `${((nowMin - DAY_START) / SPAN) * 100}%` }} />
         )}

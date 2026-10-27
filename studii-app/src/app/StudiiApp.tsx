@@ -7,7 +7,6 @@ import { FloorPlan } from "@/features/floor-plan/FloorPlan";
 import { TimeBar } from "@/features/availability/TimeBar";
 import { DateChips } from "@/features/availability/DateChips";
 import { RoomSheet } from "@/features/booking/RoomSheet";
-import { butlerFixture } from "@/lib/fixtures/butler";
 import { BUTLER } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount } from "@/lib/time/slots";
@@ -25,9 +24,22 @@ const parseISO = (iso: string) => {
   return new Date(y, m - 1, d);
 };
 
+const LIB_SLUG = BUTLER.slug;
+
+async function fetchSnapshot(): Promise<AvailabilitySnapshot | null> {
+  try {
+    const res = await fetch(`/api/availability?lib=${LIB_SLUG}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return (await res.json()) as AvailabilitySnapshot;
+  } catch {
+    return null;
+  }
+}
+
 export function StudiiApp() {
-  // Clock + fixture are read only on the client (after mount) to keep the
-  // prerender deterministic. Swapped for the Supabase snapshot later.
+  // Live availability is fetched from /api/availability only on the client (after
+  // mount) to keep the prerender deterministic. The route serves a cached,
+  // normalized snapshot (stale-while-revalidate + coalesced upstream polling).
   const [snapshot, setSnapshot] = useState<AvailabilitySnapshot | null>(null);
   const [view, setView] = useState<"map" | "detail">("map");
   const [dateIdx, setDateIdx] = useState(0);
@@ -37,7 +49,7 @@ export function StudiiApp() {
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
 
   useEffect(() => {
-    setSnapshot(butlerFixture(5));
+    fetchSnapshot().then((s) => s && setSnapshot(s));
     const n = clampNow();
     setNowMin(n);
     setSelMin(n);
@@ -49,6 +61,9 @@ export function StudiiApp() {
       const n = clampNow();
       setNowMin(n);
       if (live && dateIdx === 0) setSelMin(n);
+      // Re-pull the cached snapshot; the server coalesces so this is cheap and
+      // never hits LibCal more than once per TTL regardless of how many clients.
+      fetchSnapshot().then((s) => s && setSnapshot(s));
     }, 30_000);
     return () => clearInterval(id);
   }, [live, dateIdx]);
@@ -73,7 +88,8 @@ export function StudiiApp() {
     );
   }
 
-  const dateKeys = Object.keys(snapshot.days);
+  // The grid call fetches a full week in one request; the UI shows the first 5 days.
+  const dateKeys = Object.keys(snapshot.days).slice(0, 5);
   const day = snapshot.days[dateKeys[dateIdx]] ?? [];
   const freeNow = freeCount(day, selMin);
   const f = fmtTime(selMin);
