@@ -14,6 +14,7 @@ export interface Room {
 export interface Library {
   slug: string; // "butler"
   name: string; // "Butler Library"
+  shortName: string; // "Butler" — compact label for tight UI (room sheet, chips)
   lid: number; // LibCal location id
   floorLabel: string; // "Floor 4 — Group Study"
   rooms: Room[];

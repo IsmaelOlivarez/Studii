@@ -11,7 +11,7 @@ import { BUTLER } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
-import type { AvailabilitySnapshot } from "@/domain/types";
+import type { AvailabilitySnapshot, Library } from "@/domain/types";
 
 const NOON = 12 * 60; // deterministic default for SSR/first paint
 const clampNow = () => {
@@ -24,11 +24,9 @@ const parseISO = (iso: string) => {
   return new Date(y, m - 1, d);
 };
 
-const LIB_SLUG = BUTLER.slug;
-
-async function fetchSnapshot(): Promise<AvailabilitySnapshot | null> {
+async function fetchSnapshot(slug: string): Promise<AvailabilitySnapshot | null> {
   try {
-    const res = await fetch(`/api/availability?lib=${LIB_SLUG}`, { cache: "no-store" });
+    const res = await fetch(`/api/availability?lib=${slug}`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()) as AvailabilitySnapshot;
   } catch {
@@ -47,14 +45,18 @@ export function StudiiApp() {
   const [nowMin, setNowMin] = useState(NOON);
   const [live, setLive] = useState(false);
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  // The library the user has opened. Butler is the only one wired today; when the
+  // campus map gains more clickable libraries it sets this, and the whole detail
+  // view (header, floor plan, room sheet, data fetch) follows from it.
+  const [activeLibrary] = useState<Library>(BUTLER);
 
   useEffect(() => {
-    fetchSnapshot().then((s) => s && setSnapshot(s));
+    fetchSnapshot(activeLibrary.slug).then((s) => s && setSnapshot(s));
     const n = clampNow();
     setNowMin(n);
     setSelMin(n);
     setLive(true);
-  }, []);
+  }, [activeLibrary]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -63,10 +65,10 @@ export function StudiiApp() {
       if (live && dateIdx === 0) setSelMin(n);
       // Re-pull the cached snapshot; the server coalesces so this is cheap and
       // never hits LibCal more than once per TTL regardless of how many clients.
-      fetchSnapshot().then((s) => s && setSnapshot(s));
+      fetchSnapshot(activeLibrary.slug).then((s) => s && setSnapshot(s));
     }, 30_000);
     return () => clearInterval(id);
-  }, [live, dateIdx]);
+  }, [live, dateIdx, activeLibrary]);
 
   const onScrub = useCallback((min: number) => {
     setSelMin(min);
@@ -97,7 +99,7 @@ export function StudiiApp() {
   const dateLabel = dateIdx === 0 ? "today" : dateIdx === 1 ? "tomorrow"
     : parseISO(dateKeys[dateIdx]).toLocaleDateString("en", { weekday: "long" });
 
-  const activeRoomObj = activeRoom ? BUTLER.rooms.find((r) => r.id === activeRoom) ?? null : null;
+  const activeRoomObj = activeRoom ? activeLibrary.rooms.find((r) => r.id === activeRoom) ?? null : null;
   const activeBusy = activeRoom ? day.find((r) => r.roomId === activeRoom)?.busy ?? [] : [];
 
   return (
@@ -116,19 +118,20 @@ export function StudiiApp() {
               <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
             <div className={styles.dtitle}>
-              <h2>Butler Library</h2>
-              <p>Floor 4 — Group Study</p>
+              <h2>{activeLibrary.name}</h2>
+              <p>{activeLibrary.floorLabel}</p>
             </div>
           </div>
           <div className={styles.scroll}>
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
             <TimeBar day={day} selMin={selMin} onChange={onScrub} isToday={dateIdx === 0} nowMin={nowMin} live={live} onNow={onNow} />
-            <FloorPlan rooms={BUTLER.rooms} day={day} selMin={selMin} selTimeLabel={selTimeLabel} onRoomClick={setActiveRoom} />
+            <FloorPlan rooms={activeLibrary.rooms} day={day} selMin={selMin} selTimeLabel={selTimeLabel} onRoomClick={setActiveRoom} />
             <div style={{ height: 14 }} />
           </div>
         </section>
 
         <RoomSheet
+          library={activeLibrary}
           room={activeRoomObj}
           busy={activeBusy}
           selMin={selMin}

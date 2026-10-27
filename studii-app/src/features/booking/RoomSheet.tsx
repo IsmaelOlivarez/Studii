@@ -6,7 +6,7 @@ import { busyAt, openUntil, nextOpen } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
 import { libcalDeepLink } from "./deeplink";
 import { DAY_START } from "@/domain/constants";
-import type { BusyRange, Room } from "@/domain/types";
+import type { BusyRange, Library, Room } from "@/domain/types";
 
 function durLabel(min: number) {
   if (min < 60) return `${min}m`;
@@ -16,6 +16,7 @@ function durLabel(min: number) {
 }
 
 export function RoomSheet({
+  library,
   room,
   busy,
   selMin,
@@ -24,6 +25,7 @@ export function RoomSheet({
   open,
   onClose,
 }: {
+  library: Library;
   room: Room | null;
   busy: BusyRange[];
   selMin: number;
@@ -68,7 +70,7 @@ export function RoomSheet({
 
   const onReserve = () => {
     if (!room || busyNow || maxDur < 30) return;
-    window.open(libcalDeepLink("butler", room.id, date, selMin), "_blank", "noopener");
+    window.open(libcalDeepLink(library.slug, room.id, date, selMin), "_blank", "noopener");
     setReserved(true);
     setTimeout(() => {
       onClose();
@@ -96,7 +98,7 @@ export function RoomSheet({
             <div className={styles.shTop}>
               <div>
                 <h2>Room {room.id}</h2>
-                <div className={styles.cap}>Seats {room.cap} · Butler Fl 4</div>
+                <div className={styles.cap}>Seats {room.cap} · {library.shortName}</div>
               </div>
               <div className={`${styles.pill} ${styles[statusCls]}`}>{statusTxt}</div>
             </div>
@@ -135,13 +137,14 @@ export function RoomSheet({
               {busyNow
                 ? "Booked at this time"
                 : reserved
-                  ? "Opening Butler booking…"
+                  ? `Opening ${library.shortName} booking…`
                   : maxDur < 30
                     ? `Books in ${maxDur} min — too soon`
                     : `Reserve · ${f.str}–${e.str} ${e.mer}`}
             </button>
             <div className={styles.fineprint}>
-              Opens Butler&apos;s booking page with this room, date &amp; start time pre-selected — set your length, log in with your UNI to confirm
+              Opens {library.shortName}&apos;s booking page with this room, date &amp; start time
+              pre-selected — set your length, log in with your UNI to confirm
             </div>
           </>
         )}

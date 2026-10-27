@@ -6,6 +6,7 @@ import type { Library } from "@/domain/types";
 export const BUTLER: Library = {
   slug: "butler",
   name: "Butler Library",
+  shortName: "Butler",
   lid: 14585,
   floorLabel: "Floor 4 — Group Study",
   rooms: [
