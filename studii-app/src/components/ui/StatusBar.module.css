@@ -1,0 +1,10 @@
+.statusbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 26px 4px;
+  font:600 14px/1 var(--font-mono);color:var(--ink);letter-spacing:.02em;flex:0 0 auto;
+}
+.dots{display:flex;gap:5px;align-items:center}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.8}
+.batt{width:22px;height:11px;border:1.5px solid var(--ink);border-radius:3px;position:relative;opacity:.8}
+.batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:var(--ink);border-radius:0 2px 2px 0}
+.batt::before{content:"";position:absolute;inset:1.5px;right:5px;background:var(--ink);border-radius:1px}

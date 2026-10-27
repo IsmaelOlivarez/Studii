@@ -1,0 +1,42 @@
+/* Studii design tokens — the single source for the "paper & ink" system.
+   Imported once (in app/globals.css). Components reference these variables only,
+   never hard-coded colors. Fonts are wired via next/font in app/layout.tsx and
+   exposed here as --font-display / --font-ui / --font-mono. */
+
+:root {
+  /* surfaces */
+  --paper: #f2ecde;
+  --paper-2: #ebe3d1;
+  --card: #fbf7ec;
+
+  /* ink */
+  --ink: #201b14;
+  --ink-soft: #6b6052;
+  --ink-faint: #a79c88;
+  --line: #d9cfb8;
+
+  /* availability status */
+  --free: #4f8a5b;
+  --free-soft: #dce8d4;
+  --limited: #c98a2e;
+  --limited-soft: #f0e2c4;
+  --full: #b0524a;
+  --full-soft: #ebd3cc;
+
+  /* architectural accent (College Walk / booking) */
+  --accent: #2c4a6e;
+
+  /* campus map */
+  --campus-ground: #e7dfcb;
+  --campus-quad: #b9ddd2;
+  --campus-building: #6ca8d4;
+
+  /* shape + depth */
+  --radius: 22px;
+  --shadow: 28, 22, 14; /* rgb triplet for rgba(var(--shadow), a) */
+
+  /* typography — families injected by next/font (see app/layout.tsx) */
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-ui: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-spline), ui-monospace, monospace;
+}

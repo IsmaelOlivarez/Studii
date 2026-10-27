@@ -13,5 +13,7 @@ checkpoints/
 .env
 .env.*
 
-# Local AI assistant context
+# Local context + AI assistant guides (source of truth kept local)
+CONTEXT.md
 CLAUDE.md
+AGENTS.md

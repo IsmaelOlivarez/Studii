@@ -1,0 +1,18 @@
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font-ui);
+  background:#c8c0ac;
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100dvh;
+  overflow:hidden;
+}
+@media(min-width:480px){
+  body{background:radial-gradient(130% 90% at 30% 0%, #d7ceb9 0%, #c2b9a2 55%, #ada48d 100%);}
+}
+
+/* entrance animation utilities */
+.anim{opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.13s}.d3{animation-delay:.22s}.d4{animation-delay:.32s}

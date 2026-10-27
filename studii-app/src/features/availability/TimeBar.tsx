@@ -1,0 +1,100 @@
+"use client";
+import { useRef } from "react";
+import styles from "./TimeBar.module.css";
+import { DAY_START, DAY_END } from "@/domain/constants";
+import { freeCount } from "@/lib/time/slots";
+import { fmtTime } from "@/lib/time/date";
+import type { RoomAvailability } from "@/domain/types";
+
+const SPAN = DAY_END - DAY_START;
+const colorForCount = (c: number) => (c <= 1 ? "var(--full)" : c <= 3 ? "var(--limited)" : "var(--free)");
+
+export function TimeBar({
+  day,
+  selMin,
+  onChange,
+  isToday,
+  nowMin,
+  live,
+  onNow,
+}: {
+  day: RoomAvailability[];
+  selMin: number;
+  onChange: (min: number) => void;
+  isToday: boolean;
+  nowMin: number;
+  live: boolean;
+  onNow: () => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  const setFromX = (clientX: number) => {
+    const el = trackRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+    const m = Math.min(DAY_START + Math.round((ratio * SPAN) / 15) * 15, DAY_END - 15);
+    onChange(m);
+  };
+
+  const step = 20;
+  const segs = [];
+  for (let t = DAY_START; t < DAY_END; t += step) {
+    const c = freeCount(day, t);
+    segs.push(
+      <div
+        key={t}
+        className={styles.seg}
+        style={{
+          left: `${((t - DAY_START) / SPAN) * 100}%`,
+          width: `${(step / SPAN) * 100}%`,
+          background: colorForCount(c),
+          opacity: c === 0 ? 0.4 : 0.35 + 0.11 * Math.min(c, 6),
+        }}
+      />,
+    );
+  }
+
+  const f = fmtTime(selMin);
+  const c = freeCount(day, selMin);
+  const liveNow = live && isToday;
+
+  return (
+    <div className={styles.timebox}>
+      <div className={styles.row}>
+        <div className={styles.sel}>
+          <b>{f.str}</b>
+          <span>{f.mer}</span>
+        </div>
+        <button className={`${styles.nowbtn} ${liveNow ? styles.liveOn : ""}`} onClick={onNow}>
+          {liveNow ? "● Now" : "Jump to now"}
+        </button>
+      </div>
+      <div className={styles.freenow}>
+        <b>{c}</b> of 6 rooms open at {f.str} {f.mer}
+      </div>
+      <div
+        ref={trackRef}
+        className={styles.track}
+        onPointerDown={(e) => {
+          dragging.current = true;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          setFromX(e.clientX);
+        }}
+        onPointerMove={(e) => dragging.current && setFromX(e.clientX)}
+        onPointerUp={() => (dragging.current = false)}
+        onPointerCancel={() => (dragging.current = false)}
+      >
+        {segs}
+        {isToday && (
+          <div className={styles.nowline} style={{ left: `${((nowMin - DAY_START) / SPAN) * 100}%` }} />
+        )}
+        <div className={styles.thumb} style={{ left: `${((selMin - DAY_START) / SPAN) * 100}%` }} />
+      </div>
+      <div className={styles.ticks}>
+        <span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>12a</span>
+      </div>
+    </div>
+  );
+}
