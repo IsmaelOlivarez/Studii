@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./RoomSheet.module.css";
 import { DAY_END, DURATION_OPTIONS, MAX_DURATION } from "@/domain/constants";
 import { busyAt, openUntil, nextOpen } from "@/lib/time/slots";
@@ -7,6 +7,11 @@ import { fmtTime } from "@/lib/time/date";
 import { libcalDeepLink } from "./deeplink";
 import { DAY_START } from "@/domain/constants";
 import type { BusyRange, Library, Room } from "@/domain/types";
+
+// Users who tick "don't show again" skip the pre-booking notice from then on
+// (per device; cleared by clearing site data).
+const SKIP_NOTE_KEY = "studii.skipBookingNote";
+const NOTE_SECONDS = 3; // auto-proceed countdown
 
 function durLabel(min: number) {
   if (min < 60) return `${min}m`;
@@ -36,10 +41,14 @@ export function RoomSheet({
 }) {
   const [selDur, setSelDur] = useState(120);
   const [reserved, setReserved] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [dontShow, setDontShow] = useState(false);
+  const [count, setCount] = useState(NOTE_SECONDS);
 
   useEffect(() => {
     setReserved(false);
     setSelDur(120);
+    setNoteOpen(false);
   }, [room?.id]);
 
   const busyNow = room ? busyAt(busy, selMin) : false;
@@ -68,15 +77,66 @@ export function RoomSheet({
     }
   }
 
-  const onReserve = () => {
-    if (!room || busyNow || maxDur < 30) return;
-    window.open(libcalDeepLink(library.slug, room.id, date, selMin), "_blank", "noopener");
+  // Hand off to LibCal. `newTab` opens a new tab (keeps Studii open) for explicit
+  // clicks; the 3s auto-proceed navigates the SAME tab instead, because a timer-fired
+  // window.open() (no user gesture) gets popup-blocked.
+  const go = (newTab: boolean) => {
+    if (!room) return;
+    const url = libcalDeepLink(library.slug, room.id, date, selMin);
+    if (newTab) window.open(url, "_blank", "noopener");
+    else window.location.assign(url);
+    if (!newTab) return; // page is navigating away; skip the close animation
+    setNoteOpen(false);
     setReserved(true);
     setTimeout(() => {
       onClose();
       setTimeout(() => setReserved(false), 500);
     }, 1300);
   };
+
+  // Keep the latest `go` for the countdown timer without re-arming it each render.
+  const autoRef = useRef(() => {});
+  useEffect(() => {
+    autoRef.current = () => go(false);
+  });
+
+  useEffect(() => {
+    if (!noteOpen) return;
+    const iv = setInterval(() => setCount((c) => Math.max(c - 1, 0)), 1000);
+    const to = setTimeout(() => autoRef.current(), NOTE_SECONDS * 1000);
+    return () => {
+      clearInterval(iv);
+      clearTimeout(to);
+    };
+  }, [noteOpen]);
+
+  const onReserve = () => {
+    if (!room || busyNow || maxDur < 30) return;
+    let skip = false;
+    try {
+      skip = localStorage.getItem(SKIP_NOTE_KEY) === "1";
+    } catch {}
+    if (skip) {
+      go(true); // straight through (still a user gesture → new tab)
+      return;
+    }
+    setDontShow(false);
+    setCount(NOTE_SECONDS);
+    setNoteOpen(true);
+  };
+
+  const toggleDontShow = () => {
+    setDontShow((prev) => {
+      const next = !prev;
+      try {
+        if (next) localStorage.setItem(SKIP_NOTE_KEY, "1");
+        else localStorage.removeItem(SKIP_NOTE_KEY);
+      } catch {}
+      return next;
+    });
+  };
+
+  const blockCount = Math.max(1, Math.round((dur || 30) / 30));
 
   const blocks = [];
   for (let t = DAY_START; t < DAY_END; t += 30) {
@@ -148,6 +208,36 @@ export function RoomSheet({
             </div>
           </>
         )}
+      </div>
+
+      {/* Pre-redirect notice: LibCal books in 30-min blocks, so the deep link can only
+          pre-select the START. This tells the user to extend to their chosen end. */}
+      <div
+        className={`${styles.noteScrim} ${noteOpen ? styles.noteOpen : ""}`}
+        onClick={() => setNoteOpen(false)}
+      >
+        <div
+          className={styles.noteCard}
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={styles.noteEyebrow}>Before you book</div>
+          <h3 className={styles.noteTitle}>{library.shortName} books in 30-min blocks</h3>
+          <p className={styles.noteBody}>
+            We&apos;ll open <b>Room {room?.id}</b> at <b>{f.str} {f.mer}</b>. For your{" "}
+            <b>{durLabel(dur || 30)}</b>, select through to <b>{e.str} {e.mer}</b> ({blockCount}{" "}
+            {blockCount === 1 ? "block" : "blocks"}), then sign in with your UNI to confirm.
+          </p>
+          <label className={styles.noteCheck}>
+            <input type="checkbox" checked={dontShow} onChange={toggleDontShow} />
+            <span>Don&apos;t show this again</span>
+          </label>
+          <button className={styles.noteBtn} onClick={() => go(true)}>
+            Take me there <span className={styles.noteArrow}>→</span>
+            <em className={styles.noteCount}>opens in {count}s</em>
+          </button>
+        </div>
       </div>
     </>
   );

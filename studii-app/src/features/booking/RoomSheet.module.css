@@ -47,3 +47,27 @@
 .reserve:disabled{opacity:.55;cursor:not-allowed}
 .reserve.done{background:var(--free);opacity:1}
 .fineprint{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:11px;line-height:1.4}
+
+/* pre-redirect notice modal (layers above the sheet) */
+.noteScrim{position:absolute;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:28px;
+  background:rgba(var(--shadow),.5);opacity:0;pointer-events:none;transition:opacity .25s}
+.noteOpen{opacity:1;pointer-events:auto}
+.noteCard{background:var(--card);border-radius:22px;padding:24px 22px;max-width:330px;width:100%;text-align:left;
+  box-shadow:0 30px 70px -20px rgba(var(--shadow),.6);
+  transform:translateY(12px) scale(.96);transition:transform .28s cubic-bezier(.3,1.3,.5,1)}
+.noteOpen .noteCard{transform:translateY(0) scale(1)}
+.noteEyebrow{font-family:var(--font-mono);font-weight:700;font-size:10px;line-height:1;letter-spacing:.16em;text-transform:uppercase;color:var(--limited)}
+.noteTitle{font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:-.01em;line-height:1.12;margin-top:8px}
+.noteBody{font-size:13.5px;line-height:1.5;color:var(--ink-soft);margin-top:12px}
+.noteBody b{color:var(--ink);font-weight:700}
+.noteCheck{display:flex;align-items:center;gap:9px;margin-top:18px;cursor:pointer;user-select:none;
+  font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--ink-soft)}
+.noteCheck input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex:0 0 auto}
+.noteBtn{margin-top:18px;width:100%;border:none;border-radius:14px;padding:15px;cursor:pointer;position:relative;
+  background:var(--ink);color:var(--paper);font-family:var(--font-display);font-size:16px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .16s}
+.noteBtn:active{transform:scale(.98)}
+.noteArrow{font-size:17px;line-height:1}
+.noteCount{position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  font-family:var(--font-mono);font-style:normal;font-weight:600;font-size:10px;line-height:1;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--paper);opacity:.55}
