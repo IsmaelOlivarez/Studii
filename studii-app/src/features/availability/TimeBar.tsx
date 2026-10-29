@@ -7,10 +7,15 @@ import { fmtTime } from "@/lib/time/date";
 import type { RoomAvailability } from "@/domain/types";
 
 const SPAN = DAY_END - DAY_START;
-const colorForCount = (c: number) => (c <= 1 ? "var(--full)" : c <= 3 ? "var(--limited)" : "var(--free)");
+// Color by share of rooms free, so it reads the same for a 6-room or 17-room library.
+const colorForCount = (c: number, total: number) => {
+  const r = total ? c / total : 0;
+  return r <= 0.15 ? "var(--full)" : r <= 0.4 ? "var(--limited)" : "var(--free)";
+};
 
 export function TimeBar({
   day,
+  total,
   selMin,
   onChange,
   isToday,
@@ -19,6 +24,7 @@ export function TimeBar({
   onNow,
 }: {
   day: RoomAvailability[];
+  total: number;
   selMin: number;
   onChange: (min: number) => void;
   isToday: boolean;
@@ -49,8 +55,8 @@ export function TimeBar({
         style={{
           left: `${((t - DAY_START) / SPAN) * 100}%`,
           width: `${(step / SPAN) * 100}%`,
-          background: colorForCount(c),
-          opacity: c === 0 ? 0.4 : 0.35 + 0.11 * Math.min(c, 6),
+          background: colorForCount(c, total),
+          opacity: c === 0 ? 0.4 : 0.4 + 0.45 * (total ? c / total : 0),
         }}
       />,
     );
@@ -76,7 +82,7 @@ export function TimeBar({
         </button>
       </div>
       <div className={styles.freenow}>
-        <b>{c}</b> of 6 rooms open at {f.str} {f.mer}
+        <b>{c}</b> of {total} rooms open at {f.str} {f.mer}
       </div>
       <div
         ref={trackRef}

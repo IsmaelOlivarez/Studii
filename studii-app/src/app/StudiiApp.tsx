@@ -7,7 +7,7 @@ import { FloorPlan } from "@/features/floor-plan/FloorPlan";
 import { TimeBar } from "@/features/availability/TimeBar";
 import { DateChips } from "@/features/availability/DateChips";
 import { RoomSheet } from "@/features/booking/RoomSheet";
-import { BUTLER } from "@/lib/libcal/rooms";
+import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
@@ -38,37 +38,48 @@ export function StudiiApp() {
   // Live availability is fetched from /api/availability only on the client (after
   // mount) to keep the prerender deterministic. The route serves a cached,
   // normalized snapshot (stale-while-revalidate + coalesced upstream polling).
-  const [snapshot, setSnapshot] = useState<AvailabilitySnapshot | null>(null);
+  //
+  // The campus map shows every library's live ring at once, so we hold a snapshot
+  // PER library (keyed by slug). The server-side cache coalesces, so fetching all
+  // of them is still at most one LibCal refresh per library per TTL.
+  const [snapshots, setSnapshots] = useState<Record<string, AvailabilitySnapshot>>({});
   const [view, setView] = useState<"map" | "detail">("map");
   const [dateIdx, setDateIdx] = useState(0);
   const [selMin, setSelMin] = useState(NOON);
   const [nowMin, setNowMin] = useState(NOON);
   const [live, setLive] = useState(false);
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
-  // The library the user has opened. Butler is the only one wired today; when the
-  // campus map gains more clickable libraries it sets this, and the whole detail
-  // view (header, floor plan, room sheet, data fetch) follows from it.
-  const [activeLibrary] = useState<Library>(BUTLER);
+  // The library the user has opened from the map. Drives the whole detail view
+  // (header, floor plan, room sheet, which snapshot it reads).
+  const [activeLibrary, setActiveLibrary] = useState<Library>(BUTLER);
+
+  const refreshAll = useCallback(() => {
+    for (const lib of LIBRARIES) {
+      fetchSnapshot(lib.slug).then(
+        (s) => s && setSnapshots((prev) => ({ ...prev, [lib.slug]: s })),
+      );
+    }
+  }, []);
 
   useEffect(() => {
-    fetchSnapshot(activeLibrary.slug).then((s) => s && setSnapshot(s));
+    refreshAll();
     const n = clampNow();
     setNowMin(n);
     setSelMin(n);
     setLive(true);
-  }, [activeLibrary]);
+  }, [refreshAll]);
 
   useEffect(() => {
     const id = setInterval(() => {
       const n = clampNow();
       setNowMin(n);
       if (live && dateIdx === 0) setSelMin(n);
-      // Re-pull the cached snapshot; the server coalesces so this is cheap and
+      // Re-pull the cached snapshots; the server coalesces so this is cheap and
       // never hits LibCal more than once per TTL regardless of how many clients.
-      fetchSnapshot(activeLibrary.slug).then((s) => s && setSnapshot(s));
+      refreshAll();
     }, 30_000);
     return () => clearInterval(id);
-  }, [live, dateIdx, activeLibrary]);
+  }, [live, dateIdx, refreshAll]);
 
   const onScrub = useCallback((min: number) => {
     setSelMin(min);
@@ -82,7 +93,9 @@ export function StudiiApp() {
     setLive(true);
   }, []);
 
-  if (!snapshot) {
+  // Wait for every library's snapshot so the map's rings all render live at once.
+  const ready = LIBRARIES.every((l) => snapshots[l.slug]);
+  if (!ready) {
     return (
       <div className={styles.device}>
         <StatusBar />
@@ -90,10 +103,17 @@ export function StudiiApp() {
     );
   }
 
+  // Per-library "free right now" for the campus map's rings + summary cards.
+  const libStats = LIBRARIES.map((library) => {
+    const snap = snapshots[library.slug];
+    const today = snap.days[Object.keys(snap.days)[0]] ?? [];
+    return { library, free: freeCount(today, nowMin), total: library.rooms.length };
+  });
+
+  const snapshot = snapshots[activeLibrary.slug];
   // The grid call fetches a full week in one request; the UI shows the first 5 days.
   const dateKeys = Object.keys(snapshot.days).slice(0, 5);
   const day = snapshot.days[dateKeys[dateIdx]] ?? [];
-  const freeNow = freeCount(day, selMin);
   const f = fmtTime(selMin);
   const selTimeLabel = `${f.str} ${f.mer}`;
   const dateLabel = dateIdx === 0 ? "today" : dateIdx === 1 ? "tomorrow"
@@ -108,7 +128,13 @@ export function StudiiApp() {
       <div className={styles.screens}>
         <section className={`${styles.screen} ${styles.mapScreen}`}>
           <div className={styles.scroll}>
-            <CampusMap freeNow={freeNow} onEnter={() => setView("detail")} />
+            <CampusMap
+              libs={libStats}
+              onEnter={(library) => {
+                setActiveLibrary(library);
+                setView("detail");
+              }}
+            />
           </div>
         </section>
 
@@ -124,8 +150,8 @@ export function StudiiApp() {
           </div>
           <div className={styles.scroll}>
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
-            <TimeBar day={day} selMin={selMin} onChange={onScrub} isToday={dateIdx === 0} nowMin={nowMin} live={live} onNow={onNow} />
-            <FloorPlan rooms={activeLibrary.rooms} day={day} selMin={selMin} selTimeLabel={selTimeLabel} onRoomClick={setActiveRoom} />
+            <TimeBar day={day} total={activeLibrary.rooms.length} selMin={selMin} onChange={onScrub} isToday={dateIdx === 0} nowMin={nowMin} live={live} onNow={onNow} />
+            <FloorPlan library={activeLibrary} day={day} selMin={selMin} selTimeLabel={selTimeLabel} onRoomClick={setActiveRoom} />
             <div style={{ height: 14 }} />
           </div>
         </section>

@@ -1,20 +1,35 @@
+"use client";
+import { useState } from "react";
 import styles from "./FloorPlan.module.css";
 import { statusAt } from "@/lib/time/slots";
-import type { Room, RoomAvailability } from "@/domain/types";
+import type { Library, RoomAvailability } from "@/domain/types";
+import { getFloorLayout } from "./layouts";
 
 export function FloorPlan({
-  rooms,
+  library,
   day,
   selMin,
   selTimeLabel,
   onRoomClick,
 }: {
-  rooms: Room[];
+  library: Library;
   day: RoomAvailability[];
   selMin: number;
   selTimeLabel: string;
   onRoomClick: (id: string) => void;
 }) {
+  const layout = getFloorLayout(library.slug);
+  const [tierKey, setTierKey] = useState<string | undefined>(undefined);
+
+  // The selected floor, falling back to the first tier when nothing valid is chosen
+  // (including after switching to a different library whose tier keys differ).
+  const activeTier = layout.tiers?.some((t) => t.key === tierKey)
+    ? tierKey
+    : layout.tiers?.[0]?.key;
+  const rooms = activeTier
+    ? library.rooms.filter((r) => r.id.startsWith(activeTier))
+    : library.rooms;
+
   const busyOf = (id: string) => day.find((r) => r.roomId === id)?.busy ?? [];
 
   return (
@@ -27,25 +42,47 @@ export function FloorPlan({
         <i><b style={{ background: "var(--free)" }} />Open</i>
         <i><b style={{ background: "var(--limited)" }} />Opening soon</i>
         <i><b style={{ background: "var(--full)" }} />Booked</i>
+        {layout.note && <i className={styles.note}>{layout.note}</i>}
       </div>
 
-      <div className={styles.floor}>
-        <div className={`${styles.nonb} ${styles.northc}`}>Milstein Reading Room 403</div>
-        <div className={`${styles.nonb} ${styles.west}`}>PMRR 401</div>
-        <div className={styles.core}><span>Stacks<br />Core</span></div>
-        <div className={`${styles.nonb} ${styles.entry}`}>▽ Elevators · Entrance</div>
+      {layout.tiers && (
+        <div className={styles.floorTabs} role="tablist">
+          {layout.tiers.map((t) => {
+            const open = day.filter(
+              (r) => r.roomId.startsWith(t.key) && statusAt(busyOf(r.roomId), selMin) === "free",
+            ).length;
+            return (
+              <button
+                key={t.key}
+                role="tab"
+                aria-selected={t.key === activeTier}
+                className={`${styles.floorTab} ${t.key === activeTier ? styles.floorTabOn : ""}`}
+                onClick={() => setTierKey(t.key)}
+              >
+                {t.label}
+                <em>{open} open</em>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-        {rooms.map((r) => {
+      <div className={`${styles.floor} ${layout.floorClass}`}>
+        {layout.shell}
+
+        {rooms.map((r, i) => {
           const st = statusAt(busyOf(r.id), selMin); // "free" | "limited" | "full"
+          const { className, style } = layout.roomProps(r, i, rooms.length);
           return (
             <button
               key={r.id}
-              className={`${styles.room} ${styles[st]} ${styles[`r${r.id}`]}`}
+              className={`${styles.room} ${styles[st]} ${className ?? ""} ${layout.compact ? styles.compact : ""}`}
+              style={style}
               onClick={() => onRoomClick(r.id)}
             >
               <span className={styles.rd} />
               <span className={styles.rn}>{r.id}</span>
-              <span className={styles.rc}>{r.cap} seats</span>
+              {!layout.compact && <span className={styles.rc}>{r.cap} seats</span>}
             </button>
           );
         })}

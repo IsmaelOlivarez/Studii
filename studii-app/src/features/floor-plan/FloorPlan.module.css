@@ -5,6 +5,7 @@
 .legend{display:flex;gap:14px;padding:12px 24px 2px}
 .legend i{display:flex;align-items:center;gap:5px;font-family:var(--font-ui);font-weight:600;font-size:10px;line-height:1;color:var(--ink-soft);font-style:normal}
 .legend i b{width:10px;height:10px;border-radius:3px;display:block}
+.note{margin-left:auto;font-family:var(--font-mono)!important;font-weight:600;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
 
 .floor{margin:14px 22px 10px;aspect-ratio:1/.92;position:relative;
   background:linear-gradient(145deg,#ece4cf,#e3d9bf);border-radius:18px;
@@ -41,3 +42,38 @@
 .r407{right:12px;top:67%;width:24%;height:17%}
 .r408{left:30%;bottom:28px;width:18%;height:15%}
 .r409A{left:49.5%;bottom:28px;width:18%;height:15%}
+
+/* ── Uris: two-tier half-circle schematic ──────────────────────────────── */
+.floorUris{aspect-ratio:1/.9;margin-left:12px;margin-right:12px}
+/* half-disc reading room, flat edge at the bottom, with faint spokes fanning up
+   from the base — echoing the radial low stacks in the real reading room. The two
+   room tiers (Ground inner, Mezzanine outer) arc over the top of it. */
+.coreUris{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);
+  width:30%;height:44%;border-radius:999px 999px 0 0;
+  background:
+    repeating-conic-gradient(from -90deg at 50% 100%, rgba(var(--shadow),.10) 0 .7deg, transparent .7deg 15deg),
+    radial-gradient(120% 120% at 50% 100%, #e9e0c7, #dccfb0);
+  box-shadow:inset 0 0 0 1px rgba(var(--shadow),.12);
+  display:flex;align-items:flex-end;justify-content:center;padding-bottom:14%}
+.coreUris::before{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:52%;height:52%;border-radius:999px 999px 0 0;box-shadow:0 0 0 1px rgba(var(--shadow),.14)}
+.coreUris span{position:relative;z-index:1;font-family:var(--font-mono);font-weight:600;
+  font-size:8px;line-height:1.35;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-soft);text-align:center;opacity:.85}
+
+/* floor switcher (Ground / Mezzanine) */
+.floorTabs{display:flex;gap:6px;padding:10px 24px 0}
+.floorTab{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:7px 8px;border:1px solid var(--line);border-radius:12px;background:var(--card);
+  cursor:pointer;color:var(--ink-soft);transition:transform .15s,background .15s,color .15s;
+  font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:-.01em}
+.floorTab:active{transform:scale(.97)}
+.floorTab em{font-family:var(--font-mono);font-weight:600;font-size:8px;font-style:normal;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+.floorTabOn{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.floorTabOn em{color:var(--paper-2)}
+
+/* compact arc tiles: number + status dot only (capacity is uniform, noted above) */
+.compact{padding:0;align-items:center;justify-content:center;border-radius:8px}
+.compact .rn{font-size:14px}
+.compact .rd{top:4px;right:4px;width:6px;height:6px}

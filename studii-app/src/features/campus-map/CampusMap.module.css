@@ -42,18 +42,24 @@
   width:10px;height:10px;border-radius:50%;background:var(--campus-ground);box-shadow:0 0 0 2px var(--campus-building)}
 .sundial span{position:absolute;top:11px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--font-mono);font-weight:700;font-size:8px;line-height:1;color:#3a6358}
 
-.butler{position:absolute;left:28%;top:85%;width:44%;height:14%;border-radius:7px;cursor:pointer;z-index:6;border:none;
+/* library heroes on the map (position/size supplied inline per library) */
+.hero{position:absolute;border-radius:7px;cursor:pointer;z-index:6;border:none;
   background:linear-gradient(160deg,#fbf7ec,#f0e7d1);
   box-shadow:0 12px 26px -8px rgba(var(--shadow),.5),0 0 0 2.5px var(--accent);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
-.butler:active{transform:scale(.97)}
+.hero:active{transform:scale(.97)}
+/* Uris: rounder shell echoing its circular reading room */
+.uris{border-radius:16px}
 .pillars{display:flex;gap:2.5px;margin-bottom:1px}
 .pillars i{width:2.5px;height:11px;background:var(--accent);opacity:.5;border-radius:1px}
+/* dome motif for Uris (semicircle over a baseline) */
+.dome{width:20px;height:10px;margin-bottom:2px;border-radius:10px 10px 0 0;
+  background:var(--accent);opacity:.5;box-shadow:0 2px 0 -1px var(--accent)}
 .nm{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--ink)}
 .sub{font-family:var(--font-mono);font-weight:600;font-size:7px;line-height:1;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
 
-.ring{position:absolute;left:50%;top:85.5%;transform:translate(-50%,-50%);z-index:7;
+.ring{position:absolute;transform:translate(-50%,-50%);z-index:7;
   width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:var(--card)}
 .ring::before{content:"";position:absolute;inset:-6px;border-radius:50%;z-index:-1;opacity:.5;
@@ -61,10 +67,11 @@
 .cnt{font-family:var(--font-display);font-weight:600;font-size:18px;line-height:1}
 @keyframes pulse{0%{transform:scale(.92);opacity:.5}70%{opacity:0}100%{transform:scale(1.55);opacity:0}}
 
-/* summary card */
-.sumcard{margin:4px 20px 22px;background:var(--card);border-radius:var(--radius);padding:18px 20px;
+/* summary cards (one per live library) */
+.cards{display:flex;flex-direction:column;gap:12px;margin:6px 20px 22px}
+.sumcard{background:var(--card);border-radius:var(--radius);padding:18px 20px;
   box-shadow:0 10px 26px -16px rgba(var(--shadow),.5),inset 0 0 0 1px var(--line);
-  display:flex;align-items:center;gap:16px;cursor:pointer;transition:transform .2s;border:none;width:calc(100% - 40px);text-align:left}
+  display:flex;align-items:center;gap:16px;cursor:pointer;transition:transform .2s;border:none;width:100%;text-align:left}
 .sumcard:active{transform:scale(.985)}
 .stat{width:54px;height:54px;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto}
 .stat b{font-family:var(--font-display);font-size:24px;line-height:.9}
