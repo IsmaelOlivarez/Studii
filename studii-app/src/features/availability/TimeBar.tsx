@@ -15,6 +15,7 @@ const colorForCount = (c: number, total: number) => {
 
 export function TimeBar({
   day,
+  freeAt,
   total,
   selMin,
   onChange,
@@ -23,7 +24,10 @@ export function TimeBar({
   live,
   onNow,
 }: {
-  day: RoomAvailability[];
+  /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
+  day?: RoomAvailability[];
+  /** Custom free-count at a given minute — e.g. summed across all libraries (map). */
+  freeAt?: (min: number) => number;
   total: number;
   selMin: number;
   onChange: (min: number) => void;
@@ -32,6 +36,7 @@ export function TimeBar({
   live: boolean;
   onNow: () => void;
 }) {
+  const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t));
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -47,7 +52,7 @@ export function TimeBar({
   const step = 20;
   const segs = [];
   for (let t = DAY_START; t < DAY_END; t += step) {
-    const c = freeCount(day, t);
+    const c = countAt(t);
     segs.push(
       <div
         key={t}
@@ -63,7 +68,7 @@ export function TimeBar({
   }
 
   const f = fmtTime(selMin);
-  const c = freeCount(day, selMin);
+  const c = countAt(selMin);
   const liveNow = live && isToday;
 
   // Grey out everything before now (today only), snapped down to a 15-min mark.

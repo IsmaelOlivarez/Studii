@@ -103,21 +103,29 @@ export function StudiiApp() {
     );
   }
 
-  // Per-library "free right now" for the campus map's rings + summary cards.
-  const libStats = LIBRARIES.map((library) => {
-    const snap = snapshots[library.slug];
-    const today = snap.days[Object.keys(snap.days)[0]] ?? [];
-    return { library, free: freeCount(today, nowMin), total: library.rooms.length };
-  });
-
   const snapshot = snapshots[activeLibrary.slug];
   // The grid call fetches a full week in one request; the UI shows the first 5 days.
+  // All libraries share the same date keys (one window, fetched together).
   const dateKeys = Object.keys(snapshot.days).slice(0, 5);
-  const day = snapshot.days[dateKeys[dateIdx]] ?? [];
+  const dayKey = dateKeys[dateIdx];
+  const day = snapshot.days[dayKey] ?? [];
   const f = fmtTime(selMin);
   const selTimeLabel = `${f.str} ${f.mer}`;
   const dateLabel = dateIdx === 0 ? "today" : dateIdx === 1 ? "tomorrow"
     : parseISO(dateKeys[dateIdx]).toLocaleDateString("en", { weekday: "long" });
+
+  // Map view: every library's availability on the selected date, at the selected
+  // time (shared with the detail view). Rings + cards reflect the scrubbed time, and
+  // the campus time bar is colored by the total free across ALL libraries.
+  const libDays = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey] ?? []);
+  const libStats = LIBRARIES.map((library, i) => ({
+    library,
+    free: freeCount(libDays[i], selMin),
+    total: library.rooms.length,
+  }));
+  const campusTotal = LIBRARIES.reduce((s, l) => s + l.rooms.length, 0);
+  const campusFreeAt = (t: number) => libDays.reduce((s, d) => s + freeCount(d, t), 0);
+  const whenLabel = live && dateIdx === 0 ? "now" : `at ${selTimeLabel}`;
 
   const activeRoomObj = activeRoom ? activeLibrary.rooms.find((r) => r.id === activeRoom) ?? null : null;
   const activeBusy = activeRoom ? day.find((r) => r.roomId === activeRoom)?.busy ?? [] : [];
@@ -133,6 +141,19 @@ export function StudiiApp() {
               onEnter={(library) => {
                 setActiveLibrary(library);
                 setView("detail");
+              }}
+              whenLabel={whenLabel}
+              time={{
+                dateKeys,
+                dateIdx,
+                onSelectDate: setDateIdx,
+                selMin,
+                onScrub,
+                nowMin,
+                live,
+                onNow,
+                freeAt: campusFreeAt,
+                total: campusTotal,
               }}
             />
           </div>

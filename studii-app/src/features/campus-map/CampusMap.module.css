@@ -9,6 +9,9 @@
 .greet p{font-family:var(--font-display);font-size:23px;font-weight:400;line-height:1.18;margin-top:9px;color:var(--ink);letter-spacing:-.01em}
 .greet p b{font-weight:600;font-style:italic}
 
+/* shared date + time controls on the map */
+.maptime{margin-top:2px}
+
 /* campus map */
 .mapWrap{margin:16px 20px 6px;position:relative;height:560px;border-radius:var(--radius);
   background:var(--campus-ground);overflow:hidden;

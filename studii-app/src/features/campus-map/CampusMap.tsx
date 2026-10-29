@@ -1,12 +1,28 @@
 import { Fragment } from "react";
 import styles from "./CampusMap.module.css";
+import { DateChips } from "@/features/availability/DateChips";
+import { TimeBar } from "@/features/availability/TimeBar";
 import type { Library } from "@/domain/types";
 
-/** One library's live headline for the map: how many of its rooms are free now. */
+/** One library's headline for the map: how many of its rooms are free at the time. */
 export interface LibStat {
   library: Library;
   free: number;
   total: number;
+}
+
+/** Shared date/time controls for the map (drive every library's ring at once). */
+export interface MapTimeControls {
+  dateKeys: string[];
+  dateIdx: number;
+  onSelectDate: (i: number) => void;
+  selMin: number;
+  onScrub: (min: number) => void;
+  nowMin: number;
+  live: boolean;
+  onNow: () => void;
+  freeAt: (min: number) => number; // total free across all libraries at a minute
+  total: number; // total rooms across all libraries
 }
 
 // Status is RELATIVE to the building's room count so it reads the same whether a
@@ -41,9 +57,13 @@ const PLACEMENT: Record<
 export function CampusMap({
   libs,
   onEnter,
+  whenLabel,
+  time,
 }: {
   libs: LibStat[];
   onEnter: (library: Library) => void;
+  whenLabel: string;
+  time: MapTimeControls;
 }) {
   const B = styles; // shorthand
 
@@ -57,6 +77,21 @@ export function CampusMap({
       <div className={`${B.greet} anim d2`}>
         <div className={B.eyebrow}>Midterm season · live</div>
         <p>Don&apos;t wander the stacks.<br /><b>See what&apos;s open</b> before you walk over.</p>
+      </div>
+
+      {/* Shared date + time controls — scrub to see every library at that moment. */}
+      <div className={`${B.maptime} anim d3`}>
+        <DateChips dateKeys={time.dateKeys} activeIdx={time.dateIdx} onSelect={time.onSelectDate} />
+        <TimeBar
+          freeAt={time.freeAt}
+          total={time.total}
+          selMin={time.selMin}
+          onChange={time.onScrub}
+          isToday={time.dateIdx === 0}
+          nowMin={time.nowMin}
+          live={time.live}
+          onNow={time.onNow}
+        />
       </div>
 
       <div className={`${B.mapWrap} anim d3`}>
@@ -161,7 +196,7 @@ export function CampusMap({
               </div>
               <div className={B.meta}>
                 <h3>{library.name}</h3>
-                <p><span style={{ color, fontWeight: 700 }}>{word} now</span> · {total} group study rooms</p>
+                <p><span style={{ color, fontWeight: 700 }}>{word} {whenLabel}</span> · {total} group study rooms</p>
               </div>
               <div className={B.arrow}>
                 <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
