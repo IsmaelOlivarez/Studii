@@ -24,3 +24,13 @@
   box-shadow:0 4px 12px -2px rgba(var(--shadow),.6),0 0 0 3px var(--paper);pointer-events:none}
 .thumb::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:3px;height:18px;border-radius:2px;background:var(--paper);opacity:.8}
 .ticks{display:flex;justify-content:space-between;margin-top:8px;font-family:var(--font-mono);font-weight:500;font-size:9.5px;color:var(--ink-faint)}
+
+/* compact variant (campus map) — slim, single-line header, no ticks */
+.compactBox{margin:8px 20px 2px;padding:9px 13px 11px;border-radius:16px}
+.compactBox .row{margin-bottom:8px}
+.selc{font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--ink-soft);line-height:1}
+.selc b{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.compactBox .nowbtn{padding:5px 10px;font-size:9px}
+.compactBox .track{height:26px;border-radius:9px}
+.compactBox .thumb{height:34px;width:13px;border-radius:6px}
+.compactBox .thumb::after{height:13px}

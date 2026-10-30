@@ -9,13 +9,15 @@ export function DateChips({
   dateKeys,
   activeIdx,
   onSelect,
+  compact = false,
 }: {
   dateKeys: string[];
   activeIdx: number;
   onSelect: (i: number) => void;
+  compact?: boolean;
 }) {
   return (
-    <div className={styles.dates}>
+    <div className={`${styles.dates} ${compact ? styles.compact : ""}`}>
       {dateKeys.map((iso, i) => {
         const d = parseISO(iso);
         const lbl = i === 0 ? "Today" : i === 1 ? "Tom" : d.toLocaleDateString("en", { weekday: "short" });

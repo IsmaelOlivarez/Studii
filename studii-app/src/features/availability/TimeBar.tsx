@@ -23,6 +23,7 @@ export function TimeBar({
   nowMin,
   live,
   onNow,
+  compact = false,
 }: {
   /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
   day?: RoomAvailability[];
@@ -35,6 +36,8 @@ export function TimeBar({
   nowMin: number;
   live: boolean;
   onNow: () => void;
+  /** Slim variant for the campus map (count folded inline; no big header or ticks). */
+  compact?: boolean;
 }) {
   const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t));
   const trackRef = useRef<HTMLDivElement>(null);
@@ -76,19 +79,27 @@ export function TimeBar({
   const pastPct = ((pastCutoff - DAY_START) / SPAN) * 100;
 
   return (
-    <div className={styles.timebox}>
+    <div className={`${styles.timebox} ${compact ? styles.compactBox : ""}`}>
       <div className={styles.row}>
-        <div className={styles.sel}>
-          <b>{f.str}</b>
-          <span>{f.mer}</span>
-        </div>
+        {compact ? (
+          <div className={styles.selc}>
+            <b>{f.str}</b>{f.mer} · <b>{c}</b>/{total} open
+          </div>
+        ) : (
+          <div className={styles.sel}>
+            <b>{f.str}</b>
+            <span>{f.mer}</span>
+          </div>
+        )}
         <button className={`${styles.nowbtn} ${liveNow ? styles.liveOn : ""}`} onClick={onNow}>
           {liveNow ? "● Now" : "Jump to now"}
         </button>
       </div>
-      <div className={styles.freenow}>
-        <b>{c}</b> of {total} rooms open at {f.str} {f.mer}
-      </div>
+      {!compact && (
+        <div className={styles.freenow}>
+          <b>{c}</b> of {total} rooms open at {f.str} {f.mer}
+        </div>
+      )}
       <div
         ref={trackRef}
         className={styles.track}
@@ -110,9 +121,11 @@ export function TimeBar({
         )}
         <div className={styles.thumb} style={{ left: `${((selMin - DAY_START) / SPAN) * 100}%` }} />
       </div>
-      <div className={styles.ticks}>
-        <span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>12a</span>
-      </div>
+      {!compact && (
+        <div className={styles.ticks}>
+          <span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>12a</span>
+        </div>
+      )}
     </div>
   );
 }

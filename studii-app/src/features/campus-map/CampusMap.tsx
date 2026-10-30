@@ -81,8 +81,9 @@ export function CampusMap({
 
       {/* Shared date + time controls — scrub to see every library at that moment. */}
       <div className={`${B.maptime} anim d3`}>
-        <DateChips dateKeys={time.dateKeys} activeIdx={time.dateIdx} onSelect={time.onSelectDate} />
+        <DateChips dateKeys={time.dateKeys} activeIdx={time.dateIdx} onSelect={time.onSelectDate} compact />
         <TimeBar
+          compact
           freeAt={time.freeAt}
           total={time.total}
           selMin={time.selMin}
