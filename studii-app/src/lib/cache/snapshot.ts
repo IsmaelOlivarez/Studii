@@ -18,6 +18,7 @@ import { normalizeGrid } from "@/lib/libcal/normalize";
 import { getLibrary, LIBRARIES } from "@/lib/libcal/rooms";
 import { ymd } from "@/lib/time/date";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { MIN_REFRESH_INTERVAL_MS } from "@/domain/constants";
 import type { AvailabilitySnapshot } from "@/domain/types";
 
 const TABLE = "availability_snapshot";
@@ -41,12 +42,33 @@ export async function getSnapshot(
   return (data?.data as AvailabilitySnapshot | undefined) ?? null;
 }
 
-/** Poll LibCal for one library and upsert the normalized snapshot. Poller only. */
+/**
+ * Poll LibCal for one library and upsert the normalized snapshot. Poller only.
+ * THROTTLED: skips the LibCal fetch (and returns the stored snapshot) when the last
+ * one is younger than MIN_REFRESH_INTERVAL_MS, so LibCal can't be hit more than ~once
+ * per that interval per library no matter how often this is called. `force` bypasses.
+ */
 export async function refreshSnapshot(
   librarySlug: string,
-): Promise<AvailabilitySnapshot> {
+  opts: { force?: boolean } = {},
+): Promise<{ snapshot: AvailabilitySnapshot; refreshed: boolean }> {
   const library = getLibrary(librarySlug);
   if (!library) throw new Error(`Unknown library slug: ${librarySlug}`);
+
+  if (!opts.force) {
+    const { data } = await supabaseAdmin()
+      .from(TABLE)
+      .select("data, fetched_at")
+      .eq("slug", librarySlug)
+      .maybeSingle();
+    if (
+      data?.fetched_at &&
+      Date.now() - new Date(data.fetched_at).getTime() < MIN_REFRESH_INTERVAL_MS
+    ) {
+      // Fresh enough — don't touch LibCal.
+      return { snapshot: data.data as AvailabilitySnapshot, refreshed: false };
+    }
+  }
 
   const slots = await fetchGrid(library.lid, ymd(0), ymd(WINDOW_DAYS));
   const snap = normalizeGrid(slots, library);
@@ -56,12 +78,13 @@ export async function refreshSnapshot(
     .upsert({ slug: librarySlug, data: snap, fetched_at: new Date().toISOString() });
   if (error) throw new Error(`upsert ${librarySlug}: ${error.message}`);
 
-  return snap;
+  return { snapshot: snap, refreshed: true };
 }
 
 export interface RefreshResult {
   slug: string;
   ok: boolean;
+  refreshed?: boolean; // false = skipped (throttled, still fresh)
   error?: string;
 }
 
@@ -70,8 +93,8 @@ export async function refreshAll(): Promise<RefreshResult[]> {
   return Promise.all(
     LIBRARIES.map(async (lib): Promise<RefreshResult> => {
       try {
-        await refreshSnapshot(lib.slug);
-        return { slug: lib.slug, ok: true };
+        const { refreshed } = await refreshSnapshot(lib.slug);
+        return { slug: lib.slug, ok: true, refreshed };
       } catch (err) {
         console.error(`[cache] refresh failed for ${lib.slug}:`, err);
         return { slug: lib.slug, ok: false, error: String(err) };
