@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import styles from "./StudiiApp.module.css";
-import { StatusBar } from "@/components/ui/StatusBar";
 import { CampusMap } from "@/features/campus-map/CampusMap";
 import { FloorPlan } from "@/features/floor-plan/FloorPlan";
 import { TimeBar } from "@/features/availability/TimeBar";
@@ -97,11 +96,7 @@ export function StudiiApp() {
   // Wait for every library's snapshot so the map's rings all render live at once.
   const ready = LIBRARIES.every((l) => snapshots[l.slug]);
   if (!ready) {
-    return (
-      <div className={styles.device}>
-        <StatusBar />
-      </div>
-    );
+    return <div className={styles.device} />;
   }
 
   const snapshot = snapshots[activeLibrary.slug];
@@ -147,7 +142,6 @@ export function StudiiApp() {
 
   return (
     <div className={`${styles.device} ${view === "detail" ? styles.showDetail : ""}`}>
-      <StatusBar />
       <div className={styles.screens}>
         <section className={`${styles.screen} ${styles.mapScreen}`}>
           <div className={styles.scroll}>
