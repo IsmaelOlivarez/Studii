@@ -1,19 +1,19 @@
-.brand{padding:10px 26px 2px;display:flex;align-items:flex-end;justify-content:space-between}
-.brand h1{font-family:var(--font-display);font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:.9}
+.brand{padding:8px 26px 0;display:flex;align-items:flex-end;justify-content:space-between}
+.brand h1{font-family:var(--font-display);font-weight:600;font-size:30px;letter-spacing:-.02em;line-height:.9}
 .brand h1 i{font-style:italic;font-weight:500}
-.loc{text-align:right;font-size:11px;line-height:1.3;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
-.loc b{display:block;color:var(--ink);font-size:12px}
+.loc{text-align:right;font-size:10px;line-height:1.3;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.loc b{display:block;color:var(--ink);font-size:11px}
 
-.greet{padding:14px 26px 0}
-.eyebrow{font-family:var(--font-mono);font-weight:600;font-size:11px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:var(--limited)}
-.greet p{font-family:var(--font-display);font-size:23px;font-weight:400;line-height:1.18;margin-top:9px;color:var(--ink);letter-spacing:-.01em}
+.greet{padding:9px 26px 0}
+.eyebrow{font-family:var(--font-mono);font-weight:600;font-size:10px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:var(--limited)}
+.greet p{font-family:var(--font-display);font-size:16px;font-weight:400;line-height:1.25;margin-top:5px;color:var(--ink);letter-spacing:-.01em}
 .greet p b{font-weight:600;font-style:italic}
 
 /* shared date + time controls on the map */
-.maptime{margin-top:2px}
+.maptime{margin-top:0}
 
 /* campus map */
-.mapWrap{margin:16px 20px 6px;position:relative;height:560px;border-radius:var(--radius);
+.mapWrap{margin:10px 20px 6px;position:relative;height:clamp(420px,52vh,520px);border-radius:var(--radius);
   background:var(--campus-ground);overflow:hidden;
   box-shadow:inset 0 0 0 1px var(--line), 0 12px 26px -16px rgba(var(--shadow),.5)}
 .zone{position:absolute;left:0;right:0;background:var(--campus-quad)}
