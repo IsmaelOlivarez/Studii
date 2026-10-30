@@ -27,6 +27,8 @@ export function RoomSheet({
   selMin,
   date,
   dateLabel,
+  closed = false,
+  opensMin = null,
   open,
   onClose,
 }: {
@@ -36,6 +38,8 @@ export function RoomSheet({
   selMin: number;
   date: string;
   dateLabel: string;
+  closed?: boolean; // library closed at selMin → not bookable
+  opensMin?: number | null; // when it opens later that day, if applicable
   open: boolean;
   onClose: () => void;
 }) {
@@ -62,12 +66,17 @@ export function RoomSheet({
   const f = fmtTime(selMin);
   const e = fmtTime(endMin);
 
-  const statusCls = busyNow ? "full" : limited ? "limited" : "free";
-  const statusTxt = busyNow ? "Booked" : limited ? "Opens soon" : "Open";
+  const statusCls = closed ? "closed" : busyNow ? "full" : limited ? "limited" : "free";
+  const statusTxt = closed ? "Closed" : busyNow ? "Booked" : limited ? "Opens soon" : "Open";
 
   let msg = "";
   if (room) {
-    if (busyNow) {
+    if (closed) {
+      const o = opensMin != null ? fmtTime(opensMin) : null;
+      msg = o
+        ? `${library.shortName} is closed — opens at <b>${o.str} ${o.mer}</b>.`
+        : `${library.shortName} is closed at this time.`;
+    } else if (busyNow) {
       const no = nextOpen(busy, selMin);
       msg = no !== null ? `Frees up at <b>${fmtTime(no).str} ${fmtTime(no).mer}</b>.` : "Booked for the rest of the day.";
     } else {
@@ -111,7 +120,7 @@ export function RoomSheet({
   }, [noteOpen]);
 
   const onReserve = () => {
-    if (!room || busyNow || maxDur < 30) return;
+    if (!room || closed || busyNow || maxDur < 30) return;
     let skip = false;
     try {
       skip = localStorage.getItem(SKIP_NOTE_KEY) === "1";
@@ -167,7 +176,7 @@ export function RoomSheet({
             <div className={styles.striplbl}><span>8a</span><span>2p</span><span>8p</span><span>12a</span></div>
             <div className={styles.nextfree} dangerouslySetInnerHTML={{ __html: msg }} />
 
-            {!busyNow && maxDur >= 30 && (
+            {!closed && !busyNow && maxDur >= 30 && (
               <div className={styles.durwrap}>
                 <div className={styles.durlbl}>How long? <span>max 2 hrs</span></div>
                 <div className={styles.durrow}>
@@ -191,21 +200,25 @@ export function RoomSheet({
 
             <button
               className={`${styles.reserve} ${reserved ? styles.done : ""}`}
-              disabled={busyNow || maxDur < 30 || reserved}
+              disabled={closed || busyNow || maxDur < 30 || reserved}
               onClick={onReserve}
             >
-              {busyNow
-                ? "Booked at this time"
-                : reserved
-                  ? `Opening ${library.shortName} booking…`
-                  : maxDur < 30
-                    ? `Books in ${maxDur} min — too soon`
-                    : `Reserve · ${f.str}–${e.str} ${e.mer}`}
+              {closed
+                ? "Closed at this time"
+                : busyNow
+                  ? "Booked at this time"
+                  : reserved
+                    ? `Opening ${library.shortName} booking…`
+                    : maxDur < 30
+                      ? `Books in ${maxDur} min — too soon`
+                      : `Reserve · ${f.str}–${e.str} ${e.mer}`}
             </button>
-            <div className={styles.fineprint}>
-              Opens {library.shortName}&apos;s booking page with this room, date &amp; start time
-              pre-selected — set your length, log in with your UNI to confirm
-            </div>
+            {!closed && (
+              <div className={styles.fineprint}>
+                Opens {library.shortName}&apos;s booking page with this room, date &amp; start time
+                pre-selected — set your length, log in with your UNI to confirm
+              </div>
+            )}
           </>
         )}
       </div>

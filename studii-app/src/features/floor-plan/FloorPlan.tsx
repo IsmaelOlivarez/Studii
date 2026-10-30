@@ -10,12 +10,14 @@ export function FloorPlan({
   day,
   selMin,
   selTimeLabel,
+  closed = false,
   onRoomClick,
 }: {
   library: Library;
   day: RoomAvailability[];
   selMin: number;
   selTimeLabel: string;
+  closed?: boolean; // library closed at selMin → all rooms unavailable
   onRoomClick: (id: string) => void;
 }) {
   const layout = getFloorLayout(library.slug);
@@ -36,7 +38,7 @@ export function FloorPlan({
     <>
       <div className={styles.floorhead}>
         <h3>Floor plan</h3>
-        <span>at {selTimeLabel}</span>
+        <span>{closed ? "Closed" : `at ${selTimeLabel}`}</span>
       </div>
       <div className={styles.legend}>
         <i><b style={{ background: "var(--free)" }} />Open</i>
@@ -48,9 +50,11 @@ export function FloorPlan({
       {layout.tiers && (
         <div className={styles.floorTabs} role="tablist">
           {layout.tiers.map((t) => {
-            const open = day.filter(
-              (r) => r.roomId.startsWith(t.key) && statusAt(busyOf(r.roomId), selMin) === "free",
-            ).length;
+            const open = closed
+              ? 0
+              : day.filter(
+                  (r) => r.roomId.startsWith(t.key) && statusAt(busyOf(r.roomId), selMin) === "free",
+                ).length;
             return (
               <button
                 key={t.key}
@@ -60,7 +64,7 @@ export function FloorPlan({
                 onClick={() => setTierKey(t.key)}
               >
                 {t.label}
-                <em>{open} open</em>
+                <em>{closed ? "closed" : `${open} open`}</em>
               </button>
             );
           })}
@@ -71,7 +75,7 @@ export function FloorPlan({
         {layout.shell}
 
         {rooms.map((r, i) => {
-          const st = statusAt(busyOf(r.id), selMin); // "free" | "limited" | "full"
+          const st = closed ? "closed" : statusAt(busyOf(r.id), selMin); // "free" | "limited" | "full" | "closed"
           const { className, style } = layout.roomProps(r, i, rooms.length);
           return (
             <button

@@ -9,6 +9,8 @@ export interface LibStat {
   library: Library;
   free: number;
   total: number;
+  closed: boolean; // library is closed at the selected time
+  opensLabel: string | null; // e.g. "9:00am" if it opens later that day, else null
 }
 
 /** Shared date/time controls for the map (drive every library's ring at once). */
@@ -150,14 +152,14 @@ export function CampusMap({
         <div className={B.cb} style={{ left: "78.5%", top: "86%", width: "20%", height: "12.5%" }}>John Jay</div>
 
         {/* Live library heroes (Butler + Uris): each with its own availability ring. */}
-        {libs.map(({ library, free, total }) => {
+        {libs.map(({ library, free, total, closed }) => {
           const place = PLACEMENT[library.slug];
           if (!place) return null;
-          const { color } = statusOf(free, total);
+          const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
           return (
             <Fragment key={library.slug}>
               <div
-                className={B.ring}
+                className={`${B.ring} ${closed ? B.ringClosed : ""}`}
                 style={{
                   "--ring-color": color,
                   left: place.ring.left,
@@ -165,7 +167,7 @@ export function CampusMap({
                   boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
                 } as React.CSSProperties}
               >
-                <span className={B.cnt} style={{ color }}>{free}</span>
+                <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
               </div>
               <button
                 className={`${B.hero} ${B[library.slug]}`}
@@ -188,16 +190,21 @@ export function CampusMap({
 
       {/* One tappable summary card per live library. */}
       <div className={`${B.cards} anim d4`}>
-        {libs.map(({ library, free, total }) => {
+        {libs.map(({ library, free, total, closed, opensLabel }) => {
           const { cls, color, word } = statusOf(free, total);
+          const statusColor = closed ? "var(--ink-soft)" : color;
           return (
             <button key={library.slug} className={B.sumcard} onClick={() => onEnter(library)}>
-              <div className={B.stat} style={{ background: `var(--${cls}-soft)` }}>
-                <b style={{ color }}>{free}</b><em>OF {total}</em>
+              <div className={B.stat} style={{ background: closed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
+                <b style={{ color: statusColor }}>{closed ? "✕" : free}</b><em>OF {total}</em>
               </div>
               <div className={B.meta}>
                 <h3>{library.name}</h3>
-                <p><span style={{ color, fontWeight: 700 }}>{word} {whenLabel}</span> · {total} group study rooms</p>
+                <p>
+                  <span style={{ color: statusColor, fontWeight: 700 }}>
+                    {closed ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}` : `${word} ${whenLabel}`}
+                  </span> · {total} group study rooms
+                </p>
               </div>
               <div className={B.arrow}>
                 <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>

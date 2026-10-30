@@ -35,6 +35,8 @@
 .limited .rn{color:#8a5e15}.limited .rd{background:var(--limited)}
 .full{background:var(--full-soft);border-color:var(--full);opacity:.85}
 .full .rn{color:#7e332c}.full .rd{background:var(--full)}
+.closed{background:var(--paper-2);border-color:var(--line);opacity:.7}
+.closed .rn{color:var(--ink-faint)}.closed .rd{background:var(--ink-faint)}
 
 .r403A{right:12px;top:7%;width:24%;height:17%}
 .r404{right:12px;top:27%;width:24%;height:17%}

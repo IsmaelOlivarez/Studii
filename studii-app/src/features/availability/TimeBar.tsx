@@ -24,6 +24,7 @@ export function TimeBar({
   live,
   onNow,
   compact = false,
+  open,
 }: {
   /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
   day?: RoomAvailability[];
@@ -38,8 +39,16 @@ export function TimeBar({
   onNow: () => void;
   /** Slim variant for the campus map (count folded inline; no big header or ticks). */
   compact?: boolean;
+  /** Open window `[start,end)` for this library/date; `null` = closed all day;
+   *  omit = always open. Closed stretches are greyed and read as 0 open. */
+  open?: [number, number] | null;
 }) {
   const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t));
+  const closedAt = (t: number) => {
+    if (open === undefined) return false;
+    if (open === null) return true;
+    return t < open[0] || t >= open[1];
+  };
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -71,8 +80,14 @@ export function TimeBar({
   }
 
   const f = fmtTime(selMin);
-  const c = countAt(selMin);
+  const closedSel = closedAt(selMin);
+  const c = closedSel ? 0 : countAt(selMin);
   const liveNow = live && isToday;
+
+  // If closed now but opens later this day, surface the opening time.
+  const opensMin = open && selMin < open[0] ? open[0] : null;
+  const of = opensMin != null ? fmtTime(opensMin) : null;
+  const opensSuffix = of ? ` · opens ${of.str}${of.mer}` : "";
 
   // Grey out everything before now (today only), snapped down to a 15-min mark.
   const pastCutoff = Math.floor(nowMin / 15) * 15;
@@ -83,7 +98,12 @@ export function TimeBar({
       <div className={styles.row}>
         {compact ? (
           <div className={styles.selc}>
-            <b>{f.str}</b>{f.mer} · <b>{c}</b>/{total} open
+            <b>{f.str}</b>{f.mer} ·{" "}
+            {closedSel ? (
+              <span className={styles.closedTxt}>Closed{opensSuffix}</span>
+            ) : (
+              <><b>{c}</b>/{total} open</>
+            )}
           </div>
         ) : (
           <div className={styles.sel}>
@@ -97,7 +117,11 @@ export function TimeBar({
       </div>
       {!compact && (
         <div className={styles.freenow}>
-          <b>{c}</b> of {total} rooms open at {f.str} {f.mer}
+          {closedSel ? (
+            <span className={styles.closedTxt}>Closed at {f.str} {f.mer}{opensSuffix}</span>
+          ) : (
+            <><b>{c}</b> of {total} rooms open at {f.str} {f.mer}</>
+          )}
         </div>
       )}
       <div
@@ -113,6 +137,17 @@ export function TimeBar({
         onPointerCancel={() => (dragging.current = false)}
       >
         {segs}
+        {/* Closed stretches greyed out (building closed → rooms unavailable). */}
+        {open === null && <div className={styles.closedOv} style={{ left: 0, width: "100%" }} />}
+        {open && open[0] > DAY_START && (
+          <div className={styles.closedOv} style={{ left: 0, width: `${((open[0] - DAY_START) / SPAN) * 100}%` }} />
+        )}
+        {open && open[1] < DAY_END && (
+          <div
+            className={styles.closedOv}
+            style={{ left: `${((open[1] - DAY_START) / SPAN) * 100}%`, width: `${((DAY_END - open[1]) / SPAN) * 100}%` }}
+          />
+        )}
         {isToday && pastPct > 0 && (
           <div className={styles.past} style={{ width: `${pastPct}%` }} />
         )}

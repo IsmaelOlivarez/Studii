@@ -15,6 +15,7 @@
 .pill.free{background:var(--free-soft);color:#2f5e39}
 .pill.limited{background:var(--limited-soft);color:#8a5e15}
 .pill.full{background:var(--full-soft);color:#7e332c}
+.pill.closed{background:var(--paper-2);color:var(--ink-soft)}
 
 .atline{margin:18px 0 8px;font-size:13px;color:var(--ink-soft);font-weight:500}
 .atline b{color:var(--ink);font-weight:700}

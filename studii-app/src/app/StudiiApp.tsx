@@ -11,6 +11,7 @@ import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
+import { openWindow, isOpenAt, opensLaterToday } from "@/lib/time/hours";
 import type { AvailabilitySnapshot, Library } from "@/domain/types";
 
 const NOON = 12 * 60; // deterministic default for SSR/first paint
@@ -116,16 +117,30 @@ export function StudiiApp() {
 
   // Map view: every library's availability on the selected date, at the selected
   // time (shared with the detail view). Rings + cards reflect the scrubbed time, and
-  // the campus time bar is colored by the total free across ALL libraries.
+  // the campus time bar is colored by the total free across ALL libraries. A library
+  // that's CLOSED at a time contributes 0 free rooms and shows a Closed state.
   const libDays = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey] ?? []);
-  const libStats = LIBRARIES.map((library, i) => ({
-    library,
-    free: freeCount(libDays[i], selMin),
-    total: library.rooms.length,
-  }));
+  const libStats = LIBRARIES.map((library, i) => {
+    const closed = !isOpenAt(library, dayKey, selMin);
+    const opensMin = opensLaterToday(library, dayKey, selMin);
+    const fo = opensMin != null ? fmtTime(opensMin) : null;
+    return {
+      library,
+      free: closed ? 0 : freeCount(libDays[i], selMin),
+      total: library.rooms.length,
+      closed,
+      opensLabel: fo ? `${fo.str}${fo.mer}` : null,
+    };
+  });
   const campusTotal = LIBRARIES.reduce((s, l) => s + l.rooms.length, 0);
-  const campusFreeAt = (t: number) => libDays.reduce((s, d) => s + freeCount(d, t), 0);
+  const campusFreeAt = (t: number) =>
+    LIBRARIES.reduce((s, lib, i) => s + (isOpenAt(lib, dayKey, t) ? freeCount(libDays[i], t) : 0), 0);
   const whenLabel = live && dateIdx === 0 ? "now" : `at ${selTimeLabel}`;
+
+  // Detail view: is the active library closed at the selected time?
+  const detailWin = openWindow(activeLibrary, dayKey);
+  const detailClosed = !isOpenAt(activeLibrary, dayKey, selMin);
+  const detailOpensMin = opensLaterToday(activeLibrary, dayKey, selMin);
 
   const activeRoomObj = activeRoom ? activeLibrary.rooms.find((r) => r.id === activeRoom) ?? null : null;
   const activeBusy = activeRoom ? day.find((r) => r.roomId === activeRoom)?.busy ?? [] : [];
@@ -171,8 +186,8 @@ export function StudiiApp() {
           </div>
           <div className={styles.scroll}>
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
-            <TimeBar day={day} total={activeLibrary.rooms.length} selMin={selMin} onChange={onScrub} isToday={dateIdx === 0} nowMin={nowMin} live={live} onNow={onNow} />
-            <FloorPlan library={activeLibrary} day={day} selMin={selMin} selTimeLabel={selTimeLabel} onRoomClick={setActiveRoom} />
+            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={dateIdx === 0} nowMin={nowMin} live={live} onNow={onNow} />
+            <FloorPlan library={activeLibrary} day={day} selMin={selMin} selTimeLabel={selTimeLabel} closed={detailClosed} onRoomClick={setActiveRoom} />
             <div style={{ height: 14 }} />
           </div>
         </section>
@@ -184,6 +199,8 @@ export function StudiiApp() {
           selMin={selMin}
           date={dateKeys[dateIdx]}
           dateLabel={dateLabel}
+          closed={detailClosed}
+          opensMin={detailOpensMin}
           open={!!activeRoom}
           onClose={() => setActiveRoom(null)}
         />
