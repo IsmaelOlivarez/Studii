@@ -2,6 +2,7 @@
 import { useState } from "react";
 import styles from "./FloorPlan.module.css";
 import { statusAt } from "@/lib/time/slots";
+import { DAY_END } from "@/domain/constants";
 import type { Library, RoomAvailability } from "@/domain/types";
 import { getFloorLayout } from "./layouts";
 
@@ -11,6 +12,7 @@ export function FloorPlan({
   selMin,
   selTimeLabel,
   closed = false,
+  closeMin = DAY_END,
   onRoomClick,
 }: {
   library: Library;
@@ -18,6 +20,7 @@ export function FloorPlan({
   selMin: number;
   selTimeLabel: string;
   closed?: boolean; // library closed at selMin → all rooms unavailable
+  closeMin?: number; // library's close minute → rooms unbookable within 30 min read full
   onRoomClick: (id: string) => void;
 }) {
   const layout = getFloorLayout(library.slug);
@@ -53,7 +56,7 @@ export function FloorPlan({
             const open = closed
               ? 0
               : day.filter(
-                  (r) => r.roomId.startsWith(t.key) && statusAt(busyOf(r.roomId), selMin) === "free",
+                  (r) => r.roomId.startsWith(t.key) && statusAt(busyOf(r.roomId), selMin, closeMin) === "free",
                 ).length;
             return (
               <button
@@ -75,7 +78,7 @@ export function FloorPlan({
         {layout.shell}
 
         {rooms.map((r, i) => {
-          const st = closed ? "closed" : statusAt(busyOf(r.id), selMin); // "free" | "limited" | "full" | "closed"
+          const st = closed ? "closed" : statusAt(busyOf(r.id), selMin, closeMin); // "free" | "limited" | "full" | "closed"
           const { className, style } = layout.roomProps(r, i, rooms.length);
           return (
             <button

@@ -43,7 +43,11 @@ export function TimeBar({
    *  omit = always open. Closed stretches are greyed and read as 0 open. */
   open?: [number, number] | null;
 }) {
-  const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t));
+  // Cap bookability at close (detail view derives it from `open`; the map supplies its
+  // own per-library `freeAt`). A room that can't fit a 30-min block before close reads
+  // as unavailable, so segments just before closing go red like booked ones.
+  const cap = open?.[1] ?? DAY_END;
+  const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t, cap));
   const closedAt = (t: number) => {
     if (open === undefined) return false;
     if (open === null) return true;

@@ -5,6 +5,8 @@ export const DAY_END = 24 * 60; // 24:00 — end of the day window
 export const SLOT_MINUTES = 15; // LibCal grid granularity
 
 export const MAX_DURATION = 120; // rooms are bookable up to 2 hours
+export const MIN_DURATION = 30; // LibCal's minimum bookable block — a room that
+// can't fit this before it closes (or before its next booking) is unavailable
 export const DURATION_OPTIONS = [30, 60, 90, 120] as const; // minutes
 
 // Stale-while-revalidate window for the cached snapshot (see lib/cache).

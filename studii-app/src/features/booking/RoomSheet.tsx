@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import styles from "./RoomSheet.module.css";
-import { DAY_END, DURATION_OPTIONS, MAX_DURATION } from "@/domain/constants";
+import { DAY_END, DURATION_OPTIONS, MAX_DURATION, MIN_DURATION } from "@/domain/constants";
 import { busyAt, openUntil, nextOpen } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
 import { libcalDeepLink } from "./deeplink";
@@ -28,6 +28,7 @@ export function RoomSheet({
   date,
   dateLabel,
   closed = false,
+  closeMin = DAY_END,
   opensMin = null,
   open,
   onClose,
@@ -39,6 +40,7 @@ export function RoomSheet({
   date: string;
   dateLabel: string;
   closed?: boolean; // library closed at selMin → not bookable
+  closeMin?: number; // library's close minute → caps the bookable window
   opensMin?: number | null; // when it opens later that day, if applicable
   open: boolean;
   onClose: () => void;
@@ -56,18 +58,24 @@ export function RoomSheet({
   }, [room?.id]);
 
   const busyNow = room ? busyAt(busy, selMin) : false;
-  const until = room ? openUntil(busy, selMin) : DAY_END;
+  const until = room ? openUntil(busy, selMin, closeMin) : DAY_END;
   const freeWin = until - selMin;
   const maxDur = Math.min(MAX_DURATION, freeWin);
   let dur = Math.min(selDur, Math.floor(maxDur / 30) * 30);
   if (dur < 30) dur = maxDur >= 30 ? Math.floor(maxDur / 30) * 30 : 0;
   const endMin = selMin + (dur || 0);
-  const limited = !busyNow && freeWin <= 30;
+  // Free now, but not enough runway to fit the 30-min minimum before the room fills
+  // or the library closes → unavailable, same as booked.
+  const tooSoon = !!room && !busyNow && maxDur < MIN_DURATION;
+  // Is the close (not an imminent booking) what cuts the window short?
+  const nextBooking = room ? openUntil(busy, selMin, DAY_END) : DAY_END;
+  const closeLimited = tooSoon && nextBooking - selMin >= MIN_DURATION;
+  const limited = !busyNow && !tooSoon && freeWin <= 30;
   const f = fmtTime(selMin);
   const e = fmtTime(endMin);
 
-  const statusCls = closed ? "closed" : busyNow ? "full" : limited ? "limited" : "free";
-  const statusTxt = closed ? "Closed" : busyNow ? "Booked" : limited ? "Opens soon" : "Open";
+  const statusCls = closed ? "closed" : busyNow ? "full" : tooSoon ? "full" : limited ? "limited" : "free";
+  const statusTxt = closed ? "Closed" : busyNow ? "Booked" : tooSoon ? "Unavailable" : limited ? "Opens soon" : "Open";
 
   let msg = "";
   if (room) {
@@ -79,6 +87,15 @@ export function RoomSheet({
     } else if (busyNow) {
       const no = nextOpen(busy, selMin);
       msg = no !== null ? `Frees up at <b>${fmtTime(no).str} ${fmtTime(no).mer}</b>.` : "Booked for the rest of the day.";
+    } else if (tooSoon) {
+      if (closeLimited && closeMin < DAY_END) {
+        const c = fmtTime(closeMin);
+        msg = `${library.shortName} closes at <b>${c.str} ${c.mer}</b> — not enough time to book 30 min.`;
+      } else if (closeLimited) {
+        msg = "Too late to book a 30-min block today.";
+      } else {
+        msg = `Only <b>${maxDur} min</b> free before the next booking — too short to reserve.`;
+      }
     } else {
       msg = until < DAY_END
         ? `Open now — stays free until <b>${fmtTime(until).str} ${fmtTime(until).mer}</b>.`
@@ -149,7 +166,8 @@ export function RoomSheet({
 
   const blocks = [];
   for (let t = DAY_START; t < DAY_END; t += 30) {
-    const bk = room ? busyAt(busy, t) : false;
+    const past = closeMin < DAY_END && t >= closeMin; // past real close → unbookable
+    const bk = room ? busyAt(busy, t) || past : false;
     const inPlan = !busyNow && dur > 0 && t >= selMin && t < endMin;
     const isCur = selMin >= t && selMin < t + 30;
     blocks.push(
@@ -210,7 +228,9 @@ export function RoomSheet({
                   : reserved
                     ? `Opening ${library.shortName} booking…`
                     : maxDur < 30
-                      ? `Books in ${maxDur} min — too soon`
+                      ? closeLimited && closeMin < DAY_END
+                        ? "Closes too soon to book"
+                        : "Not enough time to book"
                       : `Reserve · ${f.str}–${e.str} ${e.mer}`}
             </button>
             {!closed && (
