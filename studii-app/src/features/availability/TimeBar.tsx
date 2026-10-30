@@ -57,7 +57,10 @@ export function TimeBar({
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-    const m = Math.min(DAY_START + Math.round((ratio * SPAN) / 15) * 15, DAY_END - 15);
+    let m = Math.min(DAY_START + Math.round((ratio * SPAN) / 15) * 15, DAY_END - 15);
+    // Can't scrub into the past — on today the floor is the current 15-min block.
+    const floor = isToday ? Math.floor(nowMin / 15) * 15 : DAY_START;
+    m = Math.max(m, floor);
     onChange(m);
   };
 
