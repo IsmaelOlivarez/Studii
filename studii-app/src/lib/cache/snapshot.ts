@@ -1,94 +1,81 @@
 // Shared availability cache — the heart of the data strategy. SERVER-SIDE ONLY.
 //
-// Reads ALWAYS return the cached snapshot instantly. A refresh is triggered only
-// when the cache is older than CACHE_TTL_MS, and is guarded by a lock so that
-// many simultaneous users cause AT MOST ONE LibCal refresh (coalescing). On a
-// failed poll we keep the last-good snapshot.
+// BACKEND: Supabase (Postgres). A scheduled poller (pg_cron → POST /api/refresh,
+// ~every 60s) calls `refreshAll`, which fetches LibCal once per library and upserts
+// the normalized snapshot into `availability_snapshot`. Reads (`getSnapshot`) just
+// return the latest stored row — they NEVER hit LibCal — so LibCal is polled at a
+// fixed cadence by exactly one actor, no matter how much client traffic there is.
 //
-//   getSnapshot(slug)      -> cached snapshot (+ fire-and-forget revalidate if stale)
-//   refreshSnapshot(slug)  -> fetchGrid -> normalizeGrid -> persist (lock-guarded)
+//   getSnapshot(slug)   -> latest stored snapshot (read-only; null if not yet written)
+//   refreshSnapshot(slug)-> fetchGrid -> normalizeGrid -> upsert (poller only)
+//   refreshAll()        -> refresh every library; used by /api/refresh
 //
-// CURRENT BACKEND: in-process module state. The cache + lock live in the Node
-// server's memory, which is enough for dev and a single-instance demo (lost on
-// restart, not shared across instances). The Supabase-backed version swaps the
-// store + lock below WITHOUT changing these two function signatures, so nothing
-// upstream (API route, components) has to change.
+// `getSnapshot` keeps the same signature as the old in-process cache, so the API
+// route and every component upstream are unchanged.
 
 import { fetchGrid } from "@/lib/libcal/client";
 import { normalizeGrid } from "@/lib/libcal/normalize";
-import { getLibrary } from "@/lib/libcal/rooms";
+import { getLibrary, LIBRARIES } from "@/lib/libcal/rooms";
 import { ymd } from "@/lib/time/date";
-import { CACHE_TTL_MS } from "@/domain/constants";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import type { AvailabilitySnapshot } from "@/domain/types";
 
+const TABLE = "availability_snapshot";
 /** How many days ahead to pull in one grid call (one call serves every date). */
 const WINDOW_DAYS = 7;
 
-interface Entry {
-  snap: AvailabilitySnapshot;
-  at: number; // Date.now() when fetched
-}
-
-// Last-good snapshot per library slug.
-const cache = new Map<string, Entry>();
-// In-flight refresh per slug — the coalescing lock. Concurrent callers share it.
-const inFlight = new Map<string, Promise<AvailabilitySnapshot>>();
-
-const isStale = (e: Entry) => Date.now() - e.at > CACHE_TTL_MS;
-
+/** Latest stored snapshot for a library, or null if the poller hasn't written one yet. */
 export async function getSnapshot(
   librarySlug: string,
 ): Promise<AvailabilitySnapshot | null> {
-  const entry = cache.get(librarySlug);
+  const { data, error } = await supabaseAdmin()
+    .from(TABLE)
+    .select("data")
+    .eq("slug", librarySlug)
+    .maybeSingle();
 
-  // Cold cache: must wait for the first real fetch.
-  if (!entry) {
-    try {
-      return await refreshSnapshot(librarySlug);
-    } catch (err) {
-      console.error(`[cache] cold refresh failed for ${librarySlug}:`, err);
-      return null;
-    }
+  if (error) {
+    console.error(`[cache] read failed for ${librarySlug}:`, error.message);
+    return null;
   }
-
-  // Warm but stale: serve last-good now, revalidate in the background (coalesced).
-  if (isStale(entry)) {
-    refreshSnapshot(librarySlug).catch((err) =>
-      console.error(`[cache] background refresh failed for ${librarySlug}:`, err),
-    );
-  }
-  return entry.snap;
+  return (data?.data as AvailabilitySnapshot | undefined) ?? null;
 }
 
+/** Poll LibCal for one library and upsert the normalized snapshot. Poller only. */
 export async function refreshSnapshot(
   librarySlug: string,
 ): Promise<AvailabilitySnapshot> {
-  // Coalesce: if a refresh is already running, everyone awaits the same promise.
-  const existing = inFlight.get(librarySlug);
-  if (existing) return existing;
-
   const library = getLibrary(librarySlug);
   if (!library) throw new Error(`Unknown library slug: ${librarySlug}`);
 
-  const run = (async (): Promise<AvailabilitySnapshot> => {
-    try {
-      const slots = await fetchGrid(library.lid, ymd(0), ymd(WINDOW_DAYS));
-      const snap = normalizeGrid(slots, library);
-      cache.set(librarySlug, { snap, at: Date.now() });
-      return snap;
-    } catch (err) {
-      // Keep last-good on failure; only surface the error if we have nothing.
-      const last = cache.get(librarySlug);
-      if (last) {
-        console.error(`[cache] refresh failed for ${librarySlug}, serving last-good:`, err);
-        return last.snap;
-      }
-      throw err;
-    } finally {
-      inFlight.delete(librarySlug);
-    }
-  })();
+  const slots = await fetchGrid(library.lid, ymd(0), ymd(WINDOW_DAYS));
+  const snap = normalizeGrid(slots, library);
 
-  inFlight.set(librarySlug, run);
-  return run;
+  const { error } = await supabaseAdmin()
+    .from(TABLE)
+    .upsert({ slug: librarySlug, data: snap, fetched_at: new Date().toISOString() });
+  if (error) throw new Error(`upsert ${librarySlug}: ${error.message}`);
+
+  return snap;
+}
+
+export interface RefreshResult {
+  slug: string;
+  ok: boolean;
+  error?: string;
+}
+
+/** Refresh every known library; never throws — reports per-library success. */
+export async function refreshAll(): Promise<RefreshResult[]> {
+  return Promise.all(
+    LIBRARIES.map(async (lib): Promise<RefreshResult> => {
+      try {
+        await refreshSnapshot(lib.slug);
+        return { slug: lib.slug, ok: true };
+      } catch (err) {
+        console.error(`[cache] refresh failed for ${lib.slug}:`, err);
+        return { slug: lib.slug, ok: false, error: String(err) };
+      }
+    }),
+  );
 }
