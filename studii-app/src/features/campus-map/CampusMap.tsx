@@ -25,6 +25,7 @@ export interface MapTimeControls {
   onNow: () => void;
   freeAt: (min: number) => number; // total free across all libraries at a minute
   total: number; // total rooms across all libraries
+  totalAt: (min: number) => number; // rooms in libraries OPEN at a minute (closed drop out)
 }
 
 // Status is RELATIVE to the building's room count so it reads the same whether a
@@ -88,6 +89,7 @@ export function CampusMap({
           compact
           freeAt={time.freeAt}
           total={time.total}
+          totalAt={time.totalAt}
           selMin={time.selMin}
           onChange={time.onScrub}
           isToday={time.dateIdx === 0}

@@ -134,6 +134,10 @@ export function StudiiApp() {
   const campusTotal = LIBRARIES.reduce((s, l) => s + l.rooms.length, 0);
   const campusFreeAt = (t: number) =>
     LIBRARIES.reduce((s, lib, i) => s + (isOpenAt(lib, dayKey, t) ? freeCount(libDays[i], t, libCloseMin[i]) : 0), 0);
+  // Denominator counts only rooms in service at that minute — a closed library's rooms
+  // drop out of the campus N/total (you can't book them, so they don't "count").
+  const campusOpenTotal = (t: number) =>
+    LIBRARIES.reduce((s, lib) => s + (isOpenAt(lib, dayKey, t) ? lib.rooms.length : 0), 0);
   const whenLabel = live && dateIdx === 0 ? "now" : `at ${selTimeLabel}`;
 
   // Detail view: is the active library closed at the selected time?
@@ -168,6 +172,7 @@ export function StudiiApp() {
                 onNow,
                 freeAt: campusFreeAt,
                 total: campusTotal,
+                totalAt: campusOpenTotal,
               }}
             />
           </div>

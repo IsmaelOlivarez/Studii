@@ -17,6 +17,7 @@ export function TimeBar({
   day,
   freeAt,
   total,
+  totalAt,
   selMin,
   onChange,
   isToday,
@@ -31,6 +32,9 @@ export function TimeBar({
   /** Custom free-count at a given minute — e.g. summed across all libraries (map). */
   freeAt?: (min: number) => number;
   total: number;
+  /** Per-minute denominator — e.g. rooms in libraries OPEN at that minute (map), so
+   *  rooms outside their hours drop out of the N/total count. Falls back to `total`. */
+  totalAt?: (min: number) => number;
   selMin: number;
   onChange: (min: number) => void;
   isToday: boolean;
@@ -48,6 +52,9 @@ export function TimeBar({
   // as unavailable, so segments just before closing go red like booked ones.
   const cap = open?.[1] ?? DAY_END;
   const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t, cap));
+  // Denominator at a minute: rooms actually in service then (drops closed libraries
+  // on the map). Defaults to the fixed total (detail view: a single library).
+  const totalOf = totalAt ?? (() => total);
   const closedAt = (t: number) => {
     if (open === undefined) return false;
     if (open === null) return true;
@@ -72,6 +79,7 @@ export function TimeBar({
   const segs = [];
   for (let t = DAY_START; t < DAY_END; t += step) {
     const c = countAt(t);
+    const tot = totalOf(t);
     segs.push(
       <div
         key={t}
@@ -79,16 +87,31 @@ export function TimeBar({
         style={{
           left: `${((t - DAY_START) / SPAN) * 100}%`,
           width: `${(step / SPAN) * 100}%`,
-          background: colorForCount(c, total),
-          opacity: c === 0 ? 0.4 : 0.4 + 0.45 * (total ? c / total : 0),
+          background: colorForCount(c, tot),
+          opacity: c === 0 ? 0.4 : 0.4 + 0.45 * (tot ? c / tot : 0),
         }}
       />,
+    );
+  }
+
+  // Hourly indicators (8a → 12a), labeled every 2 hours to stay legible.
+  const axisTicks = [];
+  for (let h = 8; h <= 24; h++) {
+    const pct = ((h * 60 - DAY_START) / SPAN) * 100;
+    const labeled = (h - 8) % 2 === 0;
+    const mer = h < 12 || h === 24 ? "a" : "p";
+    const hh = h % 12 === 0 ? 12 : h % 12;
+    axisTicks.push(
+      <span key={h} className={styles.tick} style={{ left: `${pct}%` }}>
+        {labeled && <em>{hh}{mer}</em>}
+      </span>,
     );
   }
 
   const f = fmtTime(selMin);
   const closedSel = closedAt(selMin);
   const c = closedSel ? 0 : countAt(selMin);
+  const denom = totalOf(selMin);
   const liveNow = live && isToday;
 
   // If closed now but opens later this day, surface the opening time.
@@ -109,7 +132,7 @@ export function TimeBar({
             {closedSel ? (
               <span className={styles.closedTxt}>Closed{opensSuffix}</span>
             ) : (
-              <><b>{c}</b>/{total} open</>
+              <><b>{c}</b>/{denom} open</>
             )}
           </div>
         ) : (
@@ -127,7 +150,7 @@ export function TimeBar({
           {closedSel ? (
             <span className={styles.closedTxt}>Closed at {f.str} {f.mer}{opensSuffix}</span>
           ) : (
-            <><b>{c}</b> of {total} rooms open at {f.str} {f.mer}</>
+            <><b>{c}</b> of {denom} rooms open at {f.str} {f.mer}</>
           )}
         </div>
       )}
@@ -163,9 +186,7 @@ export function TimeBar({
         )}
         <div className={styles.thumb} style={{ left: `${((selMin - DAY_START) / SPAN) * 100}%` }} />
       </div>
-      <div className={styles.ticks}>
-        <span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>12a</span>
-      </div>
+      <div className={styles.axis}>{axisTicks}</div>
     </div>
   );
 }
