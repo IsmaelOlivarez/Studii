@@ -10,6 +10,7 @@ export interface LibStat {
   free: number;
   total: number;
   closed: boolean; // library is closed at the selected time
+  noData: boolean; // open per hours, but LibCal returned no grid for this day → unknown
   opensLabel: string | null; // e.g. "9:00am" if it opens later that day, else null
 }
 
@@ -154,14 +155,15 @@ export function CampusMap({
         <div className={B.cb} style={{ left: "78.5%", top: "86%", width: "20%", height: "12.5%" }}>John Jay</div>
 
         {/* Live library heroes (Butler + Uris): each with its own availability ring. */}
-        {libs.map(({ library, free, total, closed }) => {
+        {libs.map(({ library, free, total, closed, noData }) => {
           const place = PLACEMENT[library.slug];
           if (!place) return null;
-          const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
+          const greyed = closed || noData;
+          const color = greyed ? "var(--ink-faint)" : statusOf(free, total).color;
           return (
             <Fragment key={library.slug}>
               <div
-                className={`${B.ring} ${closed ? B.ringClosed : ""}`}
+                className={`${B.ring} ${greyed ? B.ringClosed : ""}`}
                 style={{
                   "--ring-color": color,
                   left: place.ring.left,
@@ -169,7 +171,7 @@ export function CampusMap({
                   boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
                 } as React.CSSProperties}
               >
-                <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
+                <span className={B.cnt} style={{ color }}>{closed ? "✕" : noData ? "?" : free}</span>
               </div>
               <button
                 className={`${B.hero} ${B[library.slug]}`}
@@ -192,19 +194,24 @@ export function CampusMap({
 
       {/* One tappable summary card per live library. */}
       <div className={`${B.cards} anim d4`}>
-        {libs.map(({ library, free, total, closed, opensLabel }) => {
+        {libs.map(({ library, free, total, closed, noData, opensLabel }) => {
           const { cls, color, word } = statusOf(free, total);
-          const statusColor = closed ? "var(--ink-soft)" : color;
+          const greyed = closed || noData;
+          const statusColor = greyed ? "var(--ink-soft)" : color;
           return (
             <button key={library.slug} className={B.sumcard} onClick={() => onEnter(library)}>
-              <div className={B.stat} style={{ background: closed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
-                <b style={{ color: statusColor }}>{closed ? "✕" : free}</b><em>OF {total}</em>
+              <div className={B.stat} style={{ background: greyed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
+                <b style={{ color: statusColor }}>{closed ? "✕" : noData ? "?" : free}</b><em>OF {total}</em>
               </div>
               <div className={B.meta}>
                 <h3>{library.name}</h3>
                 <p>
                   <span style={{ color: statusColor, fontWeight: 700 }}>
-                    {closed ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}` : `${word} ${whenLabel}`}
+                    {closed
+                      ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}`
+                      : noData
+                        ? "No availability data"
+                        : `${word} ${whenLabel}`}
                   </span> · {total} group study rooms
                 </p>
               </div>

@@ -9,6 +9,16 @@
 //      are the green "Available" ones; see §4 of CONTEXT.md.)
 //   4. merge contiguous busy slots into BusyRange [startMin, endMin] tuples
 //
+// IMPORTANT — "returned but free" vs "not returned at all":
+//   A date is emitted iff LibCal returned AT LEAST ONE slot for it (available or
+//   busy). When it returns a full grid with zero bookings, that day is genuinely
+//   ALL-FREE and must appear (every room, empty busy) — NOT be dropped. But LibCal
+//   sometimes returns NO slots for a whole day (verified 2026-10-31: Uris on some
+//   dates comes back `{"slots":[]}` even on a direct request). Those days stay
+//   ABSENT from `days`, and the UI MUST treat a missing date as "no data / unknown"
+//   — never as free/available. Absence of a slot within a RETURNED day = free;
+//   absence of the whole day = unknown.
+//
 // The result is exactly the shape the UI already consumes from the fixture, so
 // swapping live data in changes nothing downstream.
 
@@ -49,15 +59,20 @@ export function normalizeGrid(
     library.rooms.map((r) => [r.spaceId, r.id]),
   );
 
+  // Every date LibCal returned a slot for (available OR busy) — presence here means
+  // "we have data for this day". Days LibCal didn't return stay out entirely.
+  const seenDates = new Set<string>();
   // date -> roomId -> list of raw busy [startMin, endMin)
   const byDate = new Map<string, Map<string, BusyRange[]>>();
 
   for (const slot of slots) {
+    const date = slot.start.slice(0, 10);
+    seenDates.add(date); // record the day even for available (no-className) cells
+
     const roomId = roomIdOf.get(slot.itemId);
     if (!roomId) continue; // a space we don't track
     if (!slot.className) continue; // no className = AVAILABLE -> not busy
 
-    const date = slot.start.slice(0, 10);
     const startMin = minsOfDay(slot.start);
     // A slot ending at next-day 00:00 is "end of this day" -> 1440.
     const endMin = slot.end.slice(0, 10) !== date ? 24 * 60 : minsOfDay(slot.end);
@@ -70,11 +85,12 @@ export function normalizeGrid(
   }
 
   const days: AvailabilitySnapshot["days"] = {};
-  for (const [date, rooms] of [...byDate.entries()].sort()) {
+  for (const date of [...seenDates].sort()) {
+    const rooms = byDate.get(date); // may be undefined → a day with zero bookings
     // Always emit every tracked room (empty busy = fully open that day).
     days[date] = library.rooms.map<RoomAvailability>((r) => ({
       roomId: r.id,
-      busy: mergeRanges(rooms.get(r.id) ?? []),
+      busy: mergeRanges(rooms?.get(r.id) ?? []),
     }));
   }
 

@@ -26,6 +26,7 @@ export function TimeBar({
   onNow,
   compact = false,
   open,
+  noData = false,
 }: {
   /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
   day?: RoomAvailability[];
@@ -46,6 +47,8 @@ export function TimeBar({
   /** Open window `[start,end)` for this library/date; `null` = closed all day;
    *  omit = always open. Closed stretches are greyed and read as 0 open. */
   open?: [number, number] | null;
+  /** No LibCal grid for this day → unknown: grey the whole track, hide the count. */
+  noData?: boolean;
 }) {
   // Cap bookability at close (detail view derives it from `open`; the map supplies its
   // own per-library `freeAt`). A room that can't fit a 30-min block before close reads
@@ -77,7 +80,7 @@ export function TimeBar({
 
   const step = 20;
   const segs = [];
-  for (let t = DAY_START; t < DAY_END; t += step) {
+  for (let t = DAY_START; !noData && t < DAY_END; t += step) {
     const c = countAt(t);
     const tot = totalOf(t);
     segs.push(
@@ -129,7 +132,9 @@ export function TimeBar({
         {compact ? (
           <div className={styles.selc}>
             <b>{f.str}</b>{f.mer} ·{" "}
-            {closedSel ? (
+            {noData ? (
+              <span className={styles.closedTxt}>No data</span>
+            ) : closedSel ? (
               <span className={styles.closedTxt}>Closed{opensSuffix}</span>
             ) : (
               <><b>{c}</b>/{denom} open</>
@@ -147,7 +152,9 @@ export function TimeBar({
       </div>
       {!compact && (
         <div className={styles.freenow}>
-          {closedSel ? (
+          {noData ? (
+            <span className={styles.closedTxt}>No availability data for this day</span>
+          ) : closedSel ? (
             <span className={styles.closedTxt}>Closed at {f.str} {f.mer}{opensSuffix}</span>
           ) : (
             <><b>{c}</b> of {denom} rooms open at {f.str} {f.mer}</>
@@ -167,6 +174,8 @@ export function TimeBar({
         onPointerCancel={() => (dragging.current = false)}
       >
         {segs}
+        {/* No data for the whole day → grey the entire track (never reads as free). */}
+        {noData && <div className={styles.closedOv} style={{ left: 0, width: "100%" }} />}
         {/* Closed stretches greyed out (building closed → rooms unavailable). */}
         {open === null && <div className={styles.closedOv} style={{ left: 0, width: "100%" }} />}
         {open && open[0] > DAY_START && (

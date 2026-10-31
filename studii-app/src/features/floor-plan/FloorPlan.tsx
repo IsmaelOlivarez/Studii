@@ -12,6 +12,7 @@ export function FloorPlan({
   selMin,
   selTimeLabel,
   closed = false,
+  noData = false,
   closeMin = DAY_END,
   onRoomClick,
 }: {
@@ -20,9 +21,11 @@ export function FloorPlan({
   selMin: number;
   selTimeLabel: string;
   closed?: boolean; // library closed at selMin → all rooms unavailable
+  noData?: boolean; // no LibCal grid for this day → unknown, render greyed (not free)
   closeMin?: number; // library's close minute → rooms unbookable within 30 min read full
   onRoomClick: (id: string) => void;
 }) {
+  const greyed = closed || noData;
   const layout = getFloorLayout(library.slug);
   const [tierKey, setTierKey] = useState<string | undefined>(undefined);
 
@@ -41,7 +44,7 @@ export function FloorPlan({
     <>
       <div className={styles.floorhead}>
         <h3>Floor plan</h3>
-        <span>{closed ? "Closed" : `at ${selTimeLabel}`}</span>
+        <span>{closed ? "Closed" : noData ? "No data" : `at ${selTimeLabel}`}</span>
       </div>
       <div className={styles.legend}>
         <i><b style={{ background: "var(--free)" }} />Open</i>
@@ -53,7 +56,7 @@ export function FloorPlan({
       {layout.tiers && (
         <div className={styles.floorTabs} role="tablist">
           {layout.tiers.map((t) => {
-            const open = closed
+            const open = greyed
               ? 0
               : day.filter(
                   (r) => r.roomId.startsWith(t.key) && statusAt(busyOf(r.roomId), selMin, closeMin) === "free",
@@ -67,7 +70,7 @@ export function FloorPlan({
                 onClick={() => setTierKey(t.key)}
               >
                 {t.label}
-                <em>{closed ? "closed" : `${open} open`}</em>
+                <em>{closed ? "closed" : noData ? "—" : `${open} open`}</em>
               </button>
             );
           })}
@@ -78,7 +81,7 @@ export function FloorPlan({
         {layout.shell}
 
         {rooms.map((r, i) => {
-          const st = closed ? "closed" : statusAt(busyOf(r.id), selMin, closeMin); // "free" | "limited" | "full" | "closed"
+          const st = greyed ? "closed" : statusAt(busyOf(r.id), selMin, closeMin); // "free" | "limited" | "full" | "closed"
           const { className, style } = layout.roomProps(r, i, rooms.length);
           return (
             <button
