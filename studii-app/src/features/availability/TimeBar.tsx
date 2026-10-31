@@ -163,11 +163,9 @@ export function TimeBar({
         )}
         <div className={styles.thumb} style={{ left: `${((selMin - DAY_START) / SPAN) * 100}%` }} />
       </div>
-      {!compact && (
-        <div className={styles.ticks}>
-          <span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>12a</span>
-        </div>
-      )}
+      <div className={styles.ticks}>
+        <span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>12a</span>
+      </div>
     </div>
   );
 }

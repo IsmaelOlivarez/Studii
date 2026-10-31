@@ -30,8 +30,9 @@
 .thumb::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:3px;height:18px;border-radius:2px;background:var(--paper);opacity:.8}
 .ticks{display:flex;justify-content:space-between;margin-top:8px;font-family:var(--font-mono);font-weight:500;font-size:9.5px;color:var(--ink-faint)}
 
-/* compact variant (campus map) — slim, single-line header, no ticks */
-.compactBox{margin:8px 20px 2px;padding:9px 13px 11px;border-radius:16px}
+/* compact variant (campus map) — slim, single-line header, tight ticks */
+.compactBox{margin:8px 20px 2px;padding:9px 13px 9px;border-radius:16px}
+.compactBox .ticks{margin-top:5px;font-size:8px}
 .compactBox .row{margin-bottom:8px}
 .selc{font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--ink-soft);line-height:1}
 .selc b{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
