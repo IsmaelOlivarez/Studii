@@ -25,6 +25,8 @@ export function TimeBar({
   live,
   onNow,
   compact = false,
+  showNow = true,
+  showCount = true,
   open,
 }: {
   /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
@@ -43,6 +45,10 @@ export function TimeBar({
   onNow: () => void;
   /** Slim variant for the campus map (count folded inline; no big header or ticks). */
   compact?: boolean;
+  /** Show the "Jump to now" button (detail view moves it into the header → false). */
+  showNow?: boolean;
+  /** Show the "N of M rooms open" line (detail view moves the count into the header). */
+  showCount?: boolean;
   /** Open window `[start,end)` for this library/date; `null` = closed all day;
    *  omit = always open. `null` = closed all day (incl. absent-grid days). Closed
    *  stretches are greyed and read as 0 open. */
@@ -142,11 +148,13 @@ export function TimeBar({
             <span>{f.mer}</span>
           </div>
         )}
-        <button className={`${styles.nowbtn} ${liveNow ? styles.liveOn : ""}`} onClick={onNow}>
-          {liveNow ? "● Now" : "Jump to now"}
-        </button>
+        {showNow && (
+          <button className={`${styles.nowbtn} ${liveNow ? styles.liveOn : ""}`} onClick={onNow}>
+            {liveNow ? "● Now" : "Jump to now"}
+          </button>
+        )}
       </div>
-      {!compact && (
+      {!compact && showCount && (
         <div className={styles.freenow}>
           {closedSel ? (
             <span className={styles.closedTxt}>Closed at {f.str} {f.mer}{opensSuffix}</span>

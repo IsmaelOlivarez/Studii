@@ -1,8 +1,4 @@
-.floorhead{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:baseline}
-.floorhead h3{font-family:var(--font-display);font-size:17px;font-weight:600}
-.floorhead span{font-family:var(--font-mono);font-weight:600;font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft)}
-
-.legend{display:flex;gap:14px;padding:12px 24px 2px}
+.legend{display:flex;gap:14px;padding:4px 24px 2px}
 .legend i{display:flex;align-items:center;gap:5px;font-family:var(--font-ui);font-weight:600;font-size:10px;line-height:1;color:var(--ink-soft);font-style:normal}
 .legend i b{width:10px;height:10px;border-radius:3px;display:block}
 .note{margin-left:auto;font-family:var(--font-mono)!important;font-weight:600;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
@@ -21,12 +17,11 @@
 .entry{left:50%;bottom:10px;transform:translateX(-50%);width:34%;height:12%;background:none;box-shadow:none;color:var(--ink-faint)}
 
 .room{position:absolute;border-radius:8px;cursor:pointer;padding:6px 7px;
-  display:flex;flex-direction:column;justify-content:space-between;
+  display:flex;flex-direction:column;justify-content:center;
   box-shadow:0 4px 10px -6px rgba(var(--shadow),.5);transition:transform .18s, box-shadow .18s;
   border:1.5px solid transparent;font-family:var(--font-ui)}
 .room:active{transform:scale(.95)}
 .rn{font-family:var(--font-display);font-size:14px;font-weight:600;line-height:1}
-.rc{font-family:var(--font-mono);font-weight:600;font-size:8px;line-height:1;letter-spacing:.03em;opacity:.8}
 .rd{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%}
 
 .free{background:var(--free-soft);border-color:var(--free)}

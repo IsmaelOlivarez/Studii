@@ -157,6 +157,10 @@ export function StudiiApp() {
   const detailClosed = !isOpenAt(detailWin, selMin);
   const detailOpensMin = opensLaterToday(detailWin, selMin);
   const detailCloseMin = detailWin?.[1] ?? DAY_END;
+  // Live open-count for the active library at selMin — shown in the detail header
+  // (so the count isn't duplicated down in the time bar). Updates as you scrub.
+  const detailFree = detailClosed ? 0 : freeCount(day, selMin, detailCloseMin);
+  const detailOpensLabel = detailOpensMin != null ? fmtTime(detailOpensMin) : null;
 
   const activeRoomObj = activeRoom ? activeLibrary.rooms.find((r) => r.id === activeRoom) ?? null : null;
   const activeBusy = activeRoom ? day.find((r) => r.roomId === activeRoom)?.busy ?? [] : [];
@@ -197,13 +201,25 @@ export function StudiiApp() {
             </button>
             <div className={styles.dtitle}>
               <h2>{activeLibrary.name}</h2>
-              <p>{activeLibrary.floorLabel}</p>
+              {detailClosed ? (
+                <p className={styles.dclosed}>
+                  {detailOpensLabel ? `Closed · opens ${detailOpensLabel.str}${detailOpensLabel.mer}` : "Closed"}
+                </p>
+              ) : (
+                <p className={`${styles.dcount} ${detailFree === 0 ? styles.dcountNone : ""}`}><b>{detailFree}</b> of {activeLibrary.rooms.length} open</p>
+              )}
             </div>
+            <button
+              className={`${styles.hnow} ${live && isToday ? styles.hnowOn : ""}`}
+              onClick={onNow}
+            >
+              {live && isToday ? "● Now" : "Now"}
+            </button>
           </div>
           <div className={styles.scroll}>
+            <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
-            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} />
-            <FloorPlan library={activeLibrary} day={day} selMin={selMin} selTimeLabel={selTimeLabel} closed={detailClosed} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
+            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} />
             <div style={{ height: 14 }} />
           </div>
         </section>

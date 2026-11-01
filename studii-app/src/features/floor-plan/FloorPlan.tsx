@@ -10,7 +10,6 @@ export function FloorPlan({
   library,
   day,
   selMin,
-  selTimeLabel,
   closed = false,
   closeMin = DAY_END,
   onRoomClick,
@@ -18,7 +17,6 @@ export function FloorPlan({
   library: Library;
   day: RoomAvailability[];
   selMin: number;
-  selTimeLabel: string;
   closed?: boolean; // library closed at selMin (incl. absent-grid days) → all unavailable
   closeMin?: number; // library's close minute → rooms unbookable within 30 min read full
   onRoomClick: (id: string) => void;
@@ -39,10 +37,6 @@ export function FloorPlan({
 
   return (
     <>
-      <div className={styles.floorhead}>
-        <h3>Floor plan</h3>
-        <span>{closed ? "Closed" : `at ${selTimeLabel}`}</span>
-      </div>
       <div className={styles.legend}>
         <i><b style={{ background: "var(--free)" }} />Open</i>
         <i><b style={{ background: "var(--limited)" }} />Opening soon</i>
@@ -89,7 +83,6 @@ export function FloorPlan({
             >
               <span className={styles.rd} />
               <span className={styles.rn}>{r.id}</span>
-              {!layout.compact && <span className={styles.rc}>{r.cap} seats</span>}
             </button>
           );
         })}

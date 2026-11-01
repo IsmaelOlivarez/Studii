@@ -27,10 +27,22 @@
 .scroll::-webkit-scrollbar{display:none}
 
 /* detail header */
-.dhead{padding:max(12px,env(safe-area-inset-top)) 22px 2px;display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.dhead{padding:max(12px,env(safe-area-inset-top)) 22px 8px;display:flex;align-items:center;gap:14px;flex:0 0 auto}
 .back{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);
   display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;color:var(--ink)}
 .back:active{transform:scale(.92)}
 .back svg{width:16px;height:16px}
-.dtitle h2{font-family:var(--font-display);font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1}
-.dtitle p{font-family:var(--font-mono);font-weight:600;font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-soft);margin-top:5px}
+.dtitle{flex:1 1 auto;min-width:0}
+.dtitle h2{font-family:var(--font-display);font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtitle p{font-family:var(--font-mono);font-weight:600;font-size:11px;line-height:1;letter-spacing:.06em;margin-top:6px}
+.dcount{color:var(--ink-soft)}
+.dcount b{color:var(--free);font-size:13px}
+.dcountNone b{color:var(--full)}
+.dclosed{color:var(--full);text-transform:uppercase;letter-spacing:.1em;font-size:10px}
+/* header "Now" — pulled up from the time bar so the map leads the screen */
+.hnow{flex:0 0 auto;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);
+  font-family:var(--font-ui);font-weight:600;font-size:12px;color:var(--ink-soft);cursor:pointer;
+  transition:transform .15s,background .15s,color .15s}
+.hnow:active{transform:scale(.94)}
+.hnowOn{background:var(--free-soft);border-color:var(--free);color:#2f5e39}
