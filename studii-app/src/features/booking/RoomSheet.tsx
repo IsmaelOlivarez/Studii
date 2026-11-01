@@ -28,7 +28,6 @@ export function RoomSheet({
   date,
   dateLabel,
   closed = false,
-  noData = false,
   closeMin = DAY_END,
   opensMin = null,
   open,
@@ -40,8 +39,7 @@ export function RoomSheet({
   selMin: number;
   date: string;
   dateLabel: string;
-  closed?: boolean; // library closed at selMin → not bookable
-  noData?: boolean; // no LibCal grid for this day → unknown, not bookable (never "free")
+  closed?: boolean; // library closed at selMin (incl. absent-grid days) → not bookable
   closeMin?: number; // library's close minute → caps the bookable window
   opensMin?: number | null; // when it opens later that day, if applicable
   open: boolean;
@@ -76,14 +74,12 @@ export function RoomSheet({
   const f = fmtTime(selMin);
   const e = fmtTime(endMin);
 
-  const statusCls = closed || noData ? "closed" : busyNow ? "full" : tooSoon ? "full" : limited ? "limited" : "free";
-  const statusTxt = closed ? "Closed" : noData ? "No data" : busyNow ? "Booked" : tooSoon ? "Unavailable" : limited ? "Opens soon" : "Open";
+  const statusCls = closed ? "closed" : busyNow ? "full" : tooSoon ? "full" : limited ? "limited" : "free";
+  const statusTxt = closed ? "Closed" : busyNow ? "Booked" : tooSoon ? "Unavailable" : limited ? "Opens soon" : "Open";
 
   let msg = "";
   if (room) {
-    if (noData) {
-      msg = `No availability data for ${library.shortName} on this day yet.`;
-    } else if (closed) {
+    if (closed) {
       const o = opensMin != null ? fmtTime(opensMin) : null;
       msg = o
         ? `${library.shortName} is closed — opens at <b>${o.str} ${o.mer}</b>.`
@@ -141,7 +137,7 @@ export function RoomSheet({
   }, [noteOpen]);
 
   const onReserve = () => {
-    if (!room || closed || noData || busyNow || maxDur < 30) return;
+    if (!room || closed || busyNow || maxDur < 30) return;
     let skip = false;
     try {
       skip = localStorage.getItem(SKIP_NOTE_KEY) === "1";
@@ -171,8 +167,7 @@ export function RoomSheet({
   const blocks = [];
   for (let t = DAY_START; t < DAY_END; t += 30) {
     const past = closeMin < DAY_END && t >= closeMin; // past real close → unbookable
-    // noData → grey the whole strip; never let an unknown day read as free/green.
-    const bk = room ? noData || busyAt(busy, t) || past : false;
+    const bk = room ? busyAt(busy, t) || past : false;
     const inPlan = !busyNow && dur > 0 && t >= selMin && t < endMin;
     const isCur = selMin >= t && selMin < t + 30;
     blocks.push(
@@ -199,7 +194,7 @@ export function RoomSheet({
             <div className={styles.striplbl}><span>8a</span><span>2p</span><span>8p</span><span>12a</span></div>
             <div className={styles.nextfree} dangerouslySetInnerHTML={{ __html: msg }} />
 
-            {!closed && !noData && !busyNow && maxDur >= 30 && (
+            {!closed && !busyNow && maxDur >= 30 && (
               <div className={styles.durwrap}>
                 <div className={styles.durlbl}>How long? <span>max 2 hrs</span></div>
                 <div className={styles.durrow}>
@@ -223,14 +218,12 @@ export function RoomSheet({
 
             <button
               className={`${styles.reserve} ${reserved ? styles.done : ""}`}
-              disabled={closed || noData || busyNow || maxDur < 30 || reserved}
+              disabled={closed || busyNow || maxDur < 30 || reserved}
               onClick={onReserve}
             >
               {closed
                 ? "Closed at this time"
-                : noData
-                  ? "No data for this day"
-                  : busyNow
+                : busyNow
                   ? "Booked at this time"
                   : reserved
                     ? `Opening ${library.shortName} booking…`
@@ -240,7 +233,7 @@ export function RoomSheet({
                         : "Not enough time to book"
                       : `Reserve · ${f.str}–${e.str} ${e.mer}`}
             </button>
-            {!closed && !noData && (
+            {!closed && (
               <div className={styles.fineprint}>
                 Opens {library.shortName}&apos;s booking page with this room, date &amp; start time
                 pre-selected — set your length, log in with your UNI to confirm

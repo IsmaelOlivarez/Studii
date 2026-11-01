@@ -1,4 +1,5 @@
 import styles from "./DateChips.module.css";
+import { ymd } from "@/lib/time/date";
 
 function parseISO(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
@@ -20,7 +21,8 @@ export function DateChips({
     <div className={`${styles.dates} ${compact ? styles.compact : ""}`}>
       {dateKeys.map((iso, i) => {
         const d = parseISO(iso);
-        const lbl = i === 0 ? "Today" : i === 1 ? "Tom" : d.toLocaleDateString("en", { weekday: "short" });
+        // Label by the REAL date, not chip position — so "Today"/"Tom" can't mislabel.
+        const lbl = iso === ymd(0) ? "Today" : iso === ymd(1) ? "Tom" : d.toLocaleDateString("en", { weekday: "short" });
         return (
           <button
             key={iso}

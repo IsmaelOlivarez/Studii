@@ -17,17 +17,19 @@
 //   dates comes back `{"slots":[]}` even on a direct request). Those days stay
 //   ABSENT from `days`, and the UI MUST treat a missing date as "no data / unknown"
 //   — never as free/available. Absence of a slot within a RETURNED day = free;
-//   absence of the whole day = unknown.
+//   absence of the whole day = closed.
 //
-// The result is exactly the shape the UI already consumes from the fixture, so
-// swapping live data in changes nothing downstream.
+//   5. each emitted day also carries `open` = [earliest slot start, latest slot end].
+//      This IS the day's operating window — LibCal only returns cells inside the
+//      bookable hours, so reduced hours / holiday closures fall out for free. The app
+//      reads hours from here, not from a hardcoded table.
 
 import type { GridSlot } from "./client";
 import type {
   AvailabilitySnapshot,
   BusyRange,
+  DayAvailability,
   Library,
-  RoomAvailability,
 } from "@/domain/types";
 
 /** "YYYY-MM-DD HH:MM:SS" -> minutes-from-midnight of that timestamp's day. */
@@ -59,23 +61,29 @@ export function normalizeGrid(
     library.rooms.map((r) => [r.spaceId, r.id]),
   );
 
-  // Every date LibCal returned a slot for (available OR busy) — presence here means
-  // "we have data for this day". Days LibCal didn't return stay out entirely.
-  const seenDates = new Set<string>();
-  // date -> roomId -> list of raw busy [startMin, endMin)
-  const byDate = new Map<string, Map<string, BusyRange[]>>();
+  // Per date LibCal returned a slot for (available OR busy): its open window (the span
+  // of returned slots = the day's real bookable hours, reduced/holiday included) and
+  // each room's busy ranges. Days LibCal didn't return stay absent → closed.
+  const openOf = new Map<string, [number, number]>(); // date -> [minStart, maxEnd]
+  const byDate = new Map<string, Map<string, BusyRange[]>>(); // date -> roomId -> busy
 
   for (const slot of slots) {
     const date = slot.start.slice(0, 10);
-    seenDates.add(date); // record the day even for available (no-className) cells
+    const startMin = minsOfDay(slot.start);
+    // A slot ending at next-day 00:00 is "end of this day" -> 1440.
+    const endMin = slot.end.slice(0, 10) !== date ? 24 * 60 : minsOfDay(slot.end);
+
+    // Widen the day's open window to cover every returned cell (available or busy).
+    const w = openOf.get(date);
+    if (!w) openOf.set(date, [startMin, endMin]);
+    else {
+      if (startMin < w[0]) w[0] = startMin;
+      if (endMin > w[1]) w[1] = endMin;
+    }
 
     const roomId = roomIdOf.get(slot.itemId);
     if (!roomId) continue; // a space we don't track
     if (!slot.className) continue; // no className = AVAILABLE -> not busy
-
-    const startMin = minsOfDay(slot.start);
-    // A slot ending at next-day 00:00 is "end of this day" -> 1440.
-    const endMin = slot.end.slice(0, 10) !== date ? 24 * 60 : minsOfDay(slot.end);
 
     let rooms = byDate.get(date);
     if (!rooms) byDate.set(date, (rooms = new Map()));
@@ -85,13 +93,16 @@ export function normalizeGrid(
   }
 
   const days: AvailabilitySnapshot["days"] = {};
-  for (const date of [...seenDates].sort()) {
-    const rooms = byDate.get(date); // may be undefined → a day with zero bookings
-    // Always emit every tracked room (empty busy = fully open that day).
-    days[date] = library.rooms.map<RoomAvailability>((r) => ({
-      roomId: r.id,
-      busy: mergeRanges(rooms?.get(r.id) ?? []),
-    }));
+  for (const date of [...openOf.keys()].sort()) {
+    const rooms = byDate.get(date); // undefined → a day with zero bookings (all free)
+    days[date] = {
+      open: openOf.get(date)!,
+      // Always emit every tracked room (empty busy = fully open within the window).
+      rooms: library.rooms.map((r) => ({
+        roomId: r.id,
+        busy: mergeRanges(rooms?.get(r.id) ?? []),
+      })),
+    } satisfies DayAvailability;
   }
 
   return {

@@ -11,15 +11,6 @@ export interface Room {
   spaceId: SpaceId;
 }
 
-/** Open/close for one weekday, in minutes-from-midnight. `close` may exceed 1440
- *  (past midnight, e.g. a 3am close = 1620). `null` = closed all that day. */
-export type DayHours = { open: number; close: number } | null;
-
-/** Operating hours indexed by JS `Date.getDay()`: 0=Sun, 1=Mon, … 6=Sat. */
-export type WeeklyHours = [
-  DayHours, DayHours, DayHours, DayHours, DayHours, DayHours, DayHours,
-];
-
 export interface Library {
   slug: string; // "butler"
   name: string; // "Butler Library"
@@ -27,9 +18,9 @@ export interface Library {
   lid: number; // LibCal location id
   floorLabel: string; // "Floor 4 — Group Study"
   rooms: Room[];
-  /** Building hours. Omit for always-open (e.g. Butler, 24h during term). Static
-   *  term-time hours — holiday/break/finals specials are not tracked. */
-  hours?: WeeklyHours;
+  // NOTE: operating hours are NOT configured here. They're derived per-day from the
+  // LibCal grid itself (see DayAvailability.open), which captures reduced hours,
+  // closures, holidays and finals automatically. A day with no grid = closed.
 }
 
 /** A busy interval expressed in minutes-from-midnight, local time. */
@@ -41,11 +32,20 @@ export interface RoomAvailability {
   busy: BusyRange[];
 }
 
+/** One library's availability for one date. Present in a snapshot IFF LibCal returned
+ *  a grid for that day; a day with no grid is absent → treated as CLOSED (not free). */
+export interface DayAvailability {
+  /** Grid-derived open window `[startMin, endMin)` — the span of returned slots, i.e.
+   *  the day's true bookable hours (reduced/holiday hours included). */
+  open: [number, number];
+  rooms: RoomAvailability[];
+}
+
 /** A cached snapshot for one library across a date window. */
 export interface AvailabilitySnapshot {
   librarySlug: string;
   fetchedAt: string; // ISO timestamp of the poll that produced this
-  days: Record<DateISO, RoomAvailability[]>;
+  days: Record<DateISO, DayAvailability>;
 }
 
 export type RoomStatus = "free" | "limited" | "full";

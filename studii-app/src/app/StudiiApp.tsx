@@ -9,8 +9,8 @@ import { RoomSheet } from "@/features/booking/RoomSheet";
 import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount } from "@/lib/time/slots";
-import { fmtTime } from "@/lib/time/date";
-import { openWindow, isOpenAt, opensLaterToday } from "@/lib/time/hours";
+import { fmtTime, ymd } from "@/lib/time/date";
+import { isOpenAt, opensLaterToday } from "@/lib/time/hours";
 import type { AvailabilitySnapshot, Library } from "@/domain/types";
 
 const NOON = 12 * 60; // deterministic default for SSR/first paint
@@ -111,55 +111,51 @@ export function StudiiApp() {
     .sort()
     .slice(0, 5);
   const dayKey = dateKeys[dateIdx] ?? dateKeys[0];
-  // Active library may have NO data for this day (LibCal returned nothing). Absent ≠
-  // free — the UI must render this as "no data", never as all-open.
-  const detailHasData = snapshot.days[dayKey] !== undefined;
-  const day = snapshot.days[dayKey] ?? [];
+  // A day the library's grid never returned is absent → treated as CLOSED (its open
+  // window is null). `.rooms` drives availability; `.open` drives hours.
+  const day = snapshot.days[dayKey]?.rooms ?? [];
   const f = fmtTime(selMin);
   const selTimeLabel = `${f.str} ${f.mer}`;
-  const dateLabel = dateIdx === 0 ? "today" : dateIdx === 1 ? "tomorrow"
-    : parseISO(dateKeys[dateIdx]).toLocaleDateString("en", { weekday: "long" });
+  // Date labels keyed to the REAL date, not chip position, so "Today"/"Tomorrow" can
+  // never mislabel a shifted window.
+  const dateLabel =
+    dayKey === ymd(0) ? "today" : dayKey === ymd(1) ? "tomorrow"
+    : parseISO(dayKey).toLocaleDateString("en", { weekday: "long" });
+  const isToday = dayKey === ymd(0);
 
-  // Map view: every library's availability on the selected date, at the selected
-  // time (shared with the detail view). Rings + cards reflect the scrubbed time, and
-  // the campus time bar is colored by the total free across ALL libraries. A library
-  // that's CLOSED at a time contributes 0 free rooms and shows a Closed state.
-  const libDays = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey] ?? []);
-  // Per library: do we actually have LibCal data for this day? (vs. it being absent).
-  const libHasData = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey] !== undefined);
-  // Each library's close minute for the selected date (DAY_END when always-open, so
-  // Butler is unaffected). Bounds bookability: a room that can't fit a 30-min block
-  // before close counts as unavailable, not free.
-  const libCloseMin = LIBRARIES.map((lib) => openWindow(lib, dayKey)?.[1] ?? DAY_END);
+  // Map view: every library's availability on the selected date, at the selected time
+  // (shared with detail). Each library's open window comes from its grid for this day
+  // (null = closed/absent → 0 free + a Closed state).
+  const libWins = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey]?.open ?? null);
+  const libDays = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey]?.rooms ?? []);
+  // Close minute per library for the day → bounds bookability (a room that can't fit a
+  // 30-min block before close reads unavailable). DAY_END when open past the window.
+  const libCloseMin = libWins.map((w) => w?.[1] ?? DAY_END);
   const libStats = LIBRARIES.map((library, i) => {
-    const closed = !isOpenAt(library, dayKey, selMin);
-    // Open per our hours, but LibCal gave us no grid for this day → unknown, not free.
-    const noData = !closed && !libHasData[i];
-    const opensMin = opensLaterToday(library, dayKey, selMin);
+    const closed = !isOpenAt(libWins[i], selMin);
+    const opensMin = opensLaterToday(libWins[i], selMin);
     const fo = opensMin != null ? fmtTime(opensMin) : null;
     return {
       library,
-      free: closed || noData ? 0 : freeCount(libDays[i], selMin, libCloseMin[i]),
+      free: closed ? 0 : freeCount(libDays[i], selMin, libCloseMin[i]),
       total: library.rooms.length,
       closed,
-      noData,
       opensLabel: fo ? `${fo.str}${fo.mer}` : null,
     };
   });
   const campusTotal = LIBRARIES.reduce((s, l) => s + l.rooms.length, 0);
-  // A library only contributes to the campus counts when it's open AND we have data
-  // for it — a no-data library drops out of both numerator and denominator.
+  // Only libraries open at that minute contribute to the campus N/total — a closed
+  // (or absent-grid) library drops out of both numerator and denominator.
   const campusFreeAt = (t: number) =>
-    LIBRARIES.reduce((s, lib, i) => s + (isOpenAt(lib, dayKey, t) && libHasData[i] ? freeCount(libDays[i], t, libCloseMin[i]) : 0), 0);
+    LIBRARIES.reduce((s, _lib, i) => s + (isOpenAt(libWins[i], t) ? freeCount(libDays[i], t, libCloseMin[i]) : 0), 0);
   const campusOpenTotal = (t: number) =>
-    LIBRARIES.reduce((s, lib, i) => s + (isOpenAt(lib, dayKey, t) && libHasData[i] ? lib.rooms.length : 0), 0);
-  const whenLabel = live && dateIdx === 0 ? "now" : `at ${selTimeLabel}`;
+    LIBRARIES.reduce((s, lib, i) => s + (isOpenAt(libWins[i], t) ? lib.rooms.length : 0), 0);
+  const whenLabel = live && isToday ? "now" : `at ${selTimeLabel}`;
 
-  // Detail view: is the active library closed at the selected time?
-  const detailWin = openWindow(activeLibrary, dayKey);
-  const detailClosed = !isOpenAt(activeLibrary, dayKey, selMin);
-  const detailNoData = !detailClosed && !detailHasData; // open per hours, no LibCal grid
-  const detailOpensMin = opensLaterToday(activeLibrary, dayKey, selMin);
+  // Detail view: the active library's window for this day (null = closed all day).
+  const detailWin = snapshot.days[dayKey]?.open ?? null;
+  const detailClosed = !isOpenAt(detailWin, selMin);
+  const detailOpensMin = opensLaterToday(detailWin, selMin);
   const detailCloseMin = detailWin?.[1] ?? DAY_END;
 
   const activeRoomObj = activeRoom ? activeLibrary.rooms.find((r) => r.id === activeRoom) ?? null : null;
@@ -206,8 +202,8 @@ export function StudiiApp() {
           </div>
           <div className={styles.scroll}>
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
-            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} noData={detailNoData} selMin={selMin} onChange={onScrub} isToday={dateIdx === 0} nowMin={nowMin} live={live} onNow={onNow} />
-            <FloorPlan library={activeLibrary} day={day} selMin={selMin} selTimeLabel={selTimeLabel} closed={detailClosed} noData={detailNoData} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
+            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} />
+            <FloorPlan library={activeLibrary} day={day} selMin={selMin} selTimeLabel={selTimeLabel} closed={detailClosed} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
             <div style={{ height: 14 }} />
           </div>
         </section>
@@ -217,10 +213,9 @@ export function StudiiApp() {
           room={activeRoomObj}
           busy={activeBusy}
           selMin={selMin}
-          date={dateKeys[dateIdx]}
+          date={dayKey}
           dateLabel={dateLabel}
           closed={detailClosed}
-          noData={detailNoData}
           closeMin={detailCloseMin}
           opensMin={detailOpensMin}
           open={!!activeRoom}
