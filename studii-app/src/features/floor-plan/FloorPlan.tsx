@@ -11,7 +11,7 @@ import { getFloorLayout } from "./layouts";
 const GLYPH: Record<string, string> = { free: "✓", limited: "◷", full: "✕", closed: "–" };
 const STATUS_WORD: Record<string, string> = {
   free: "open",
-  limited: "opening soon",
+  limited: "ends soon",
   full: "booked",
   closed: "closed",
 };
@@ -49,7 +49,7 @@ export function FloorPlan({
     <>
       <div className={styles.legend}>
         <i><b className={styles.sw} style={{ background: "var(--free)" }} aria-hidden>✓</b>Open</i>
-        <i><b className={styles.sw} style={{ background: "var(--limited)" }} aria-hidden>◷</b>Opening soon</i>
+        <i><b className={styles.sw} style={{ background: "var(--limited)" }} aria-hidden>◷</b>Ends soon</i>
         <i><b className={styles.sw} style={{ background: "var(--full)" }} aria-hidden>✕</b>Booked</i>
         <i><b className={styles.sw} style={{ background: "var(--ink-faint)" }} aria-hidden>–</b>Closed</i>
         {layout.note && <i className={styles.note}>{layout.note}</i>}

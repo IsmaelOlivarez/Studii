@@ -75,7 +75,7 @@ export function RoomSheet({
   const e = fmtTime(endMin);
 
   const statusCls = closed ? "closed" : busyNow ? "full" : tooSoon ? "full" : limited ? "limited" : "free";
-  const statusTxt = closed ? "Closed" : busyNow ? "Booked" : tooSoon ? "Unavailable" : limited ? "Opens soon" : "Open";
+  const statusTxt = closed ? "Closed" : busyNow ? "Booked" : tooSoon ? "Unavailable" : limited ? "Ends soon" : "Open";
 
   let msg = "";
   if (room) {
