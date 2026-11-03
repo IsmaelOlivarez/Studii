@@ -166,7 +166,8 @@ export function CampusMap({
           const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
           return (
             <Fragment key={library.slug}>
-              <div
+              {/* The count ring is now a tap target too (not just the hero card). */}
+              <button
                 className={`${B.ring} ${closed ? B.ringClosed : ""}`}
                 style={{
                   "--ring-color": color,
@@ -174,15 +175,20 @@ export function CampusMap({
                   top: place.ring.top,
                   boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
                 } as React.CSSProperties}
+                onClick={() => onEnter(library)}
+                aria-label={`Open ${library.name} — ${closed ? "closed" : `${free} of ${total} open`}`}
               >
                 <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
-              </div>
+              </button>
               <button
                 className={`${B.hero} ${B[library.slug]}`}
                 style={place.hero}
                 onClick={() => onEnter(library)}
                 aria-label={`Open ${library.name}`}
               >
+                {/* Marks this as one of the few LIVE, tappable buildings among the
+                    decorative campus — the rest are static scenery. */}
+                <span className={B.live}><i />Live</span>
                 {place.motif === "pillars" ? (
                   <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
                 ) : (
