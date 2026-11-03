@@ -1,6 +1,9 @@
-.legend{display:flex;gap:14px;padding:4px 24px 2px}
+.legend{display:flex;flex-wrap:wrap;gap:7px 12px;padding:4px 24px 2px}
 .legend i{display:flex;align-items:center;gap:5px;font-family:var(--font-ui);font-weight:600;font-size:10px;line-height:1;color:var(--ink-soft);font-style:normal}
-.legend i b{width:10px;height:10px;border-radius:3px;display:block}
+/* legend swatch mirrors the on-tile status chip: color + glyph (teaches the glyph key) */
+.sw{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-ui);font-weight:800;font-size:10px;line-height:1;color:#fff;
+  text-shadow:0 0 1.5px rgba(14,20,10,.55)}
 .note{margin-left:auto;font-family:var(--font-mono)!important;font-weight:600;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
 
 .floor{margin:14px 22px 10px;aspect-ratio:1/.92;position:relative;
@@ -22,7 +25,13 @@
   border:1.5px solid transparent;font-family:var(--font-ui)}
 .room:active{transform:scale(.95)}
 .rn{font-family:var(--font-display);font-size:14px;font-weight:600;line-height:1}
-.rd{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%}
+/* Status chip: a GLYPH (not just a colored dot) so status reads without relying on hue.
+   Light glyph on the saturated status color + a soft dark shadow keeps it legible even on
+   the lighter amber. */
+.rd{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-ui);font-weight:800;font-size:11px;line-height:1;color:#fff;
+  text-shadow:0 0 1.5px rgba(14,20,10,.55);box-shadow:0 1px 2px -1px rgba(var(--shadow),.5)}
 
 .free{background:var(--free-soft);border-color:var(--free)}
 .free .rn{color:#2f5e39}.free .rd{background:var(--free)}
@@ -73,4 +82,4 @@
 /* compact arc tiles: number + status dot only (capacity is uniform, noted above) */
 .compact{padding:0;align-items:center;justify-content:center;border-radius:8px}
 .compact .rn{font-size:14px}
-.compact .rd{top:4px;right:4px;width:6px;height:6px}
+.compact .rd{top:3px;right:3px;width:14px;height:14px;font-size:9.5px}

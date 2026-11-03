@@ -6,6 +6,16 @@ import { DAY_END } from "@/domain/constants";
 import type { Library, RoomAvailability } from "@/domain/types";
 import { getFloorLayout } from "./layouts";
 
+// Status is carried by a distinct GLYPH per state (not color alone), so it survives for
+// colorblind users and screen readers (WCAG 1.4.1). Color stays as a reinforcing cue.
+const GLYPH: Record<string, string> = { free: "✓", limited: "◷", full: "✕", closed: "–" };
+const STATUS_WORD: Record<string, string> = {
+  free: "open",
+  limited: "opening soon",
+  full: "booked",
+  closed: "closed",
+};
+
 export function FloorPlan({
   library,
   day,
@@ -38,9 +48,10 @@ export function FloorPlan({
   return (
     <>
       <div className={styles.legend}>
-        <i><b style={{ background: "var(--free)" }} />Open</i>
-        <i><b style={{ background: "var(--limited)" }} />Opening soon</i>
-        <i><b style={{ background: "var(--full)" }} />Booked</i>
+        <i><b className={styles.sw} style={{ background: "var(--free)" }} aria-hidden>✓</b>Open</i>
+        <i><b className={styles.sw} style={{ background: "var(--limited)" }} aria-hidden>◷</b>Opening soon</i>
+        <i><b className={styles.sw} style={{ background: "var(--full)" }} aria-hidden>✕</b>Booked</i>
+        <i><b className={styles.sw} style={{ background: "var(--ink-faint)" }} aria-hidden>–</b>Closed</i>
         {layout.note && <i className={styles.note}>{layout.note}</i>}
       </div>
 
@@ -80,8 +91,9 @@ export function FloorPlan({
               className={`${styles.room} ${styles[st]} ${className ?? ""} ${layout.compact ? styles.compact : ""}`}
               style={style}
               onClick={() => onRoomClick(r.id)}
+              aria-label={`Room ${r.id} — ${STATUS_WORD[st]}`}
             >
-              <span className={styles.rd} />
+              <span className={styles.rd} aria-hidden>{GLYPH[st]}</span>
               <span className={styles.rn}>{r.id}</span>
             </button>
           );
