@@ -11,6 +11,8 @@ export interface LibStat {
   total: number;
   closed: boolean; // library is closed at the selected time (incl. absent-grid days)
   opensLabel: string | null; // e.g. "9:00am" if it opens later that day, else null
+  nextFree: number | null; // soonest minute a room frees up when 0 open now (else null)
+  nextFreeLabel: string | null; // formatted nextFree, e.g. "6:00pm"
 }
 
 /** Shared date/time controls for the map (drive every library's ring at once). */
@@ -26,6 +28,8 @@ export interface MapTimeControls {
   freeAt: (min: number) => number; // total free across all libraries at a minute
   total: number; // total rooms across all libraries
   totalAt: (min: number) => number; // rooms in libraries OPEN at a minute (closed drop out)
+  nextFree: number | null; // earliest minute ANY library has a bookable room (0 open now)
+  onJump: (min: number) => void; // scrub to a minute (used by the "Next open" jump)
 }
 
 // Status is RELATIVE to the building's room count so it reads the same whether a
@@ -96,6 +100,8 @@ export function CampusMap({
           nowMin={time.nowMin}
           live={time.live}
           onNow={time.onNow}
+          nextFree={time.nextFree}
+          onJump={time.onJump}
         />
       </div>
 
@@ -192,9 +198,18 @@ export function CampusMap({
 
       {/* One tappable summary card per live library. */}
       <div className={`${B.cards} anim d4`}>
-        {libs.map(({ library, free, total, closed, opensLabel }) => {
+        {libs.map(({ library, free, total, closed, opensLabel, nextFreeLabel }) => {
           const { cls, color, word } = statusOf(free, total);
           const statusColor = closed ? "var(--ink-soft)" : color;
+          // When nothing's bookable now, lead with the answer to "so when CAN I?" — the
+          // soonest a room opens up. Closed libraries already say when they reopen.
+          const tail = closed
+            ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}`
+            : free === 0
+              ? nextFreeLabel
+                ? `Full ${whenLabel} · next free ${nextFreeLabel}`
+                : `Fully booked ${whenLabel}`
+              : `${word} ${whenLabel}`;
           return (
             <button key={library.slug} className={B.sumcard} onClick={() => onEnter(library)}>
               <div className={B.stat} style={{ background: closed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
@@ -203,9 +218,7 @@ export function CampusMap({
               <div className={B.meta}>
                 <h3>{library.name}</h3>
                 <p>
-                  <span style={{ color: statusColor, fontWeight: 700 }}>
-                    {closed ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}` : `${word} ${whenLabel}`}
-                  </span> · {total} group study rooms
+                  <span style={{ color: statusColor, fontWeight: 700 }}>{tail}</span> · {total} group study rooms
                 </p>
               </div>
               <div className={B.arrow}>

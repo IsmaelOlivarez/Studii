@@ -3,6 +3,7 @@
 
 import { DAY_END, MAX_DURATION, MIN_DURATION, SLOT_MINUTES } from "@/domain/constants";
 import type { BusyRange, RoomStatus } from "@/domain/types";
+import type { OpenWindow } from "./hours";
 
 // `cap` throughout = the latest minute still bookable — the library's close time for
 // the date (clamped to DAY_END; always-open libraries pass DAY_END, a no-op). It bounds
@@ -51,4 +52,28 @@ export function maxBookable(busy: BusyRange[], from: number, cap: number = DAY_E
 /** How many rooms can actually be booked at `min` (accounts for close via `cap`). */
 export function freeCount(rooms: { busy: BusyRange[] }[], min: number, cap: number = DAY_END): number {
   return rooms.filter((r) => bookableAt(r.busy, min, cap)).length;
+}
+
+/**
+ * The soonest grid-aligned minute at/after `from` when ≥1 room becomes bookable,
+ * honoring the day's open window (`win = null` → closed all day → null). The search
+ * starts at the later of `from` and the open time (so a currently-closed library
+ * reports when it reopens, not a phantom pre-open slot), and a room must still fit
+ * MIN_DURATION before close. Returns null if nothing frees up (or opens) the rest of
+ * the day. This powers the "so when CAN I get a room?" answer when 0 are open now.
+ */
+export function nextFreeMinute(
+  rooms: { busy: BusyRange[] }[],
+  from: number,
+  win: OpenWindow,
+): number | null {
+  if (!win) return null;
+  const [openStart, closeMin] = win;
+  // Snap the search start up to the grid so the result lands on a clean slot boundary
+  // (a booking ends at :00/:15/:30/:45), giving a tidy "frees at 6:00pm" label.
+  let t = Math.ceil(Math.max(from, openStart) / SLOT_MINUTES) * SLOT_MINUTES;
+  for (; t < closeMin; t += SLOT_MINUTES) {
+    if (rooms.some((r) => bookableAt(r.busy, t, closeMin))) return t;
+  }
+  return null;
 }

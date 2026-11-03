@@ -28,6 +28,8 @@ export function TimeBar({
   showNow = true,
   showCount = true,
   open,
+  nextFree = null,
+  onJump,
 }: {
   /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
   day?: RoomAvailability[];
@@ -53,6 +55,11 @@ export function TimeBar({
    *  omit = always open. `null` = closed all day (incl. absent-grid days). Closed
    *  stretches are greyed and read as 0 open. */
   open?: [number, number] | null;
+  /** Soonest minute a room frees up when 0 are open at `selMin` — surfaces a one-tap
+   *  "Next open" jump out of a nothing-available dead end. null = nothing more today. */
+  nextFree?: number | null;
+  /** Scrub to a minute (the "Next open" jump). Required for the jump to render. */
+  onJump?: (min: number) => void;
 }) {
   // Cap bookability at close (detail view derives it from `open`; the map supplies its
   // own per-library `freeAt`). A room that can't fit a 30-min block before close reads
@@ -118,6 +125,10 @@ export function TimeBar({
   const f = fmtTime(selMin);
   const closedSel = closedAt(selMin);
   const c = closedSel ? 0 : countAt(selMin);
+  // Offer a one-tap escape from a nothing-open moment: when 0 rooms are bookable at
+  // selMin and a later slot exists, jump straight to it.
+  const nf = nextFree != null ? fmtTime(nextFree) : null;
+  const showJump = c === 0 && nextFree != null && !!onJump && nf;
   const denom = totalOf(selMin);
   const liveNow = live && isToday;
 
@@ -148,11 +159,18 @@ export function TimeBar({
             <span>{f.mer}</span>
           </div>
         )}
-        {showNow && (
-          <button className={`${styles.nowbtn} ${liveNow ? styles.liveOn : ""}`} onClick={onNow}>
-            {liveNow ? "● Now" : "Jump to now"}
-          </button>
-        )}
+        <div className={styles.actions}>
+          {showJump && (
+            <button className={styles.nextbtn} onClick={() => onJump!(nextFree!)}>
+              Next open {nf!.str}{nf!.mer} <span aria-hidden>→</span>
+            </button>
+          )}
+          {showNow && (
+            <button className={`${styles.nowbtn} ${liveNow ? styles.liveOn : ""}`} onClick={onNow}>
+              {liveNow ? "● Now" : "Jump to now"}
+            </button>
+          )}
+        </div>
       </div>
       {!compact && showCount && (
         <div className={styles.freenow}>

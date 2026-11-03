@@ -8,7 +8,7 @@ import { DateChips } from "@/features/availability/DateChips";
 import { RoomSheet } from "@/features/booking/RoomSheet";
 import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
-import { freeCount } from "@/lib/time/slots";
+import { freeCount, nextFreeMinute } from "@/lib/time/slots";
 import { fmtTime, ymd } from "@/lib/time/date";
 import { isOpenAt, opensLaterToday } from "@/lib/time/hours";
 import type { AvailabilitySnapshot, Library } from "@/domain/types";
@@ -135,12 +135,19 @@ export function StudiiApp() {
     const closed = !isOpenAt(libWins[i], selMin);
     const opensMin = opensLaterToday(libWins[i], selMin);
     const fo = opensMin != null ? fmtTime(opensMin) : null;
+    const free = closed ? 0 : freeCount(libDays[i], selMin, libCloseMin[i]);
+    // When nothing is bookable right now, answer "so when CAN I?" — the soonest minute a
+    // room frees up (or the library reopens with a room free). null = nothing more today.
+    const nf = free === 0 ? nextFreeMinute(libDays[i], selMin, libWins[i]) : null;
+    const nff = nf != null ? fmtTime(nf) : null;
     return {
       library,
-      free: closed ? 0 : freeCount(libDays[i], selMin, libCloseMin[i]),
+      free,
       total: library.rooms.length,
       closed,
       opensLabel: fo ? `${fo.str}${fo.mer}` : null,
+      nextFree: nf,
+      nextFreeLabel: nff ? `${nff.str}${nff.mer}` : null,
     };
   });
   const campusTotal = LIBRARIES.reduce((s, l) => s + l.rooms.length, 0);
@@ -151,6 +158,13 @@ export function StudiiApp() {
   const campusOpenTotal = (t: number) =>
     LIBRARIES.reduce((s, lib, i) => s + (isOpenAt(libWins[i], t) ? lib.rooms.length : 0), 0);
   const whenLabel = live && isToday ? "now" : `at ${selTimeLabel}`;
+  // Campus-wide "next open": the earliest minute ANY library has a bookable room, so the
+  // map's time bar can jump straight out of a nothing-open dead end. null when the whole
+  // campus is done for the day.
+  const campusNextFree =
+    libStats.map((s) => s.nextFree).filter((m): m is number => m != null).sort((a, b) => a - b)[0] ?? null;
+  // Scrub to a specific minute (used by the "Next open" jumps); drops live mode.
+  const jumpTo = (min: number) => onScrub(min);
 
   // Detail view: the active library's window for this day (null = closed all day).
   const detailWin = snapshot.days[dayKey]?.open ?? null;
@@ -161,6 +175,9 @@ export function StudiiApp() {
   // (so the count isn't duplicated down in the time bar). Updates as you scrub.
   const detailFree = detailClosed ? 0 : freeCount(day, selMin, detailCloseMin);
   const detailOpensLabel = detailOpensMin != null ? fmtTime(detailOpensMin) : null;
+  // Soonest bookable minute in the active library when nothing is open now → powers the
+  // "Next open" jump on the detail time bar.
+  const detailNextFree = detailFree === 0 ? nextFreeMinute(day, selMin, detailWin) : null;
 
   const activeRoomObj = activeRoom ? activeLibrary.rooms.find((r) => r.id === activeRoom) ?? null : null;
   const activeBusy = activeRoom ? day.find((r) => r.roomId === activeRoom)?.busy ?? [] : [];
@@ -189,6 +206,8 @@ export function StudiiApp() {
                 freeAt: campusFreeAt,
                 total: campusTotal,
                 totalAt: campusOpenTotal,
+                nextFree: campusNextFree,
+                onJump: jumpTo,
               }}
             />
           </div>
@@ -219,7 +238,7 @@ export function StudiiApp() {
           <div className={styles.scroll}>
             <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
-            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} />
+            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} />
             <div style={{ height: 14 }} />
           </div>
         </section>
