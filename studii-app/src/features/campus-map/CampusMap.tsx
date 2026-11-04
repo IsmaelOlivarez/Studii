@@ -197,7 +197,6 @@ export function CampusMap({
                   <div className={B.dome} />
                 )}
                 <div className={B.nm}>{library.name}</div>
-                <div className={B.sub}>{library.floorLabel}</div>
               </button>
             </Fragment>
           );
@@ -226,7 +225,7 @@ export function CampusMap({
               <div className={B.meta}>
                 <h3>{library.name}</h3>
                 <p>
-                  <span style={{ color: statusColor, fontWeight: 700 }}>{tail}</span> · {total} group study rooms
+                  <span style={{ color: statusColor, fontWeight: 700 }}>{tail}</span>
                 </p>
               </div>
               <div className={B.arrow}>

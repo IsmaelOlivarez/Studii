@@ -1,8 +1,8 @@
-.legend{display:flex;flex-wrap:wrap;gap:7px 12px;padding:4px 24px 2px}
-.legend i{display:flex;align-items:center;gap:5px;font-family:var(--font-ui);font-weight:600;font-size:10px;line-height:1;color:var(--ink-soft);font-style:normal}
+.legend{display:flex;flex-wrap:wrap;gap:5px 11px;padding:2px 24px;opacity:.78}
+.legend i{display:flex;align-items:center;gap:4px;font-family:var(--font-ui);font-weight:600;font-size:9px;line-height:1;color:var(--ink-faint);font-style:normal}
 /* legend swatch mirrors the on-tile status chip: color + glyph (teaches the glyph key) */
-.sw{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-ui);font-weight:800;font-size:10px;line-height:1;color:#fff;
+.sw{width:12px;height:12px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-ui);font-weight:800;font-size:8px;line-height:1;color:#fff;
   text-shadow:0 0 1.5px rgba(14,20,10,.55)}
 .note{margin-left:auto;font-family:var(--font-mono)!important;font-weight:600;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
 
