@@ -107,6 +107,17 @@ export function StudiiApp() {
     setSelMin(n);
     setLive(true);
   }, []);
+  // Switching days re-validates the selected time against the new day. A future day can be
+  // scrubbed into the past/overnight (e.g. 2:30am), which isn't reachable on today — so when
+  // flipping back to today, snap a past selMin up to the current time instead of leaving it
+  // on an unreachable minute until the next scrub.
+  const onSelectDate = useCallback((i: number) => {
+    setDateIdx(i);
+    if (i === 0) {
+      const floor = Math.floor(clampNow() / 15) * 15;
+      setSelMin((m) => Math.max(m, floor));
+    }
+  }, []);
 
   // Wait for every library's snapshot so the map's rings all render live at once.
   const ready = LIBRARIES.every((l) => snapshots[l.slug]);
@@ -235,7 +246,7 @@ export function StudiiApp() {
               time={{
                 dateKeys,
                 dateIdx,
-                onSelectDate: setDateIdx,
+                onSelectDate,
                 selMin,
                 onScrub,
                 nowMin,
@@ -278,7 +289,7 @@ export function StudiiApp() {
           </div>
           <div className={styles.scroll}>
             <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
-            <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
+            <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={onSelectDate} />
             <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} axisStart={detailAxisStart} axisEnd={detailAxisEnd} />
             <div style={{ height: 14 }} />
           </div>
