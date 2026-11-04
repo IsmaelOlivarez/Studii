@@ -98,18 +98,24 @@ export function TimeBar({
 
   const step = 20;
   const segs = [];
+  const lastT = axisEnd - step; // widen every block but the last so they overlap (no seams)
   for (let t = axisStart; t < axisEnd; t += step) {
     const c = countAt(t);
     const tot = totalOf(t);
+    // Bake the fade into an OPAQUE color (mix toward the card background) instead of using
+    // `opacity`: opaque blocks can overlap by 1px to close subpixel seams without the
+    // translucent double-darkening an overlap would otherwise cause.
+    const fade = c === 0 ? 0.4 : 0.4 + 0.45 * (tot ? c / tot : 0);
     segs.push(
       <div
         key={t}
         className={styles.seg}
         style={{
           left: `${((t - axisStart) / SPAN) * 100}%`,
-          width: `${(step / SPAN) * 100}%`,
-          background: colorForCount(c, tot),
-          opacity: c === 0 ? 0.4 : 0.4 + 0.45 * (tot ? c / tot : 0),
+          // +1px overlap into the next block hides the <1px gaps that %-rounding leaves
+          // between many blocks (visible as thin card-colored lines on the wide 24h axis).
+          width: t < lastT ? `calc(${(step / SPAN) * 100}% + 1px)` : `${(step / SPAN) * 100}%`,
+          background: `color-mix(in srgb, ${colorForCount(c, tot)} ${fade * 100}%, var(--card))`,
         }}
       />,
     );
