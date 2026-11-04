@@ -6,7 +6,6 @@ import { freeCount } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
 import type { RoomAvailability } from "@/domain/types";
 
-const SPAN = DAY_END - DAY_START;
 // Color by share of rooms free, so it reads the same for a 6-room or 17-room library.
 const colorForCount = (c: number, total: number) => {
   const r = total ? c / total : 0;
@@ -30,6 +29,8 @@ export function TimeBar({
   open,
   nextFree = null,
   onJump,
+  axisStart = DAY_START,
+  axisEnd = DAY_END,
 }: {
   /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
   day?: RoomAvailability[];
@@ -60,7 +61,13 @@ export function TimeBar({
   nextFree?: number | null;
   /** Scrub to a minute (the "Next open" jump). Required for the jump to render. */
   onJump?: (min: number) => void;
+  /** Visible time axis `[axisStart, axisEnd)` in minutes. Defaults to the standard
+   *  8a–midnight frame; extended (e.g. to a full 00:00–24:00) for 24-hour libraries so
+   *  their overnight hours are actually on-screen and scrubbable. */
+  axisStart?: number;
+  axisEnd?: number;
 }) {
+  const SPAN = axisEnd - axisStart;
   // Cap bookability at close (detail view derives it from `open`; the map supplies its
   // own per-library `freeAt`). A room that can't fit a 30-min block before close reads
   // as unavailable, so segments just before closing go red like booked ones.
@@ -82,16 +89,16 @@ export function TimeBar({
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-    let m = Math.min(DAY_START + Math.round((ratio * SPAN) / 15) * 15, DAY_END - 15);
+    let m = Math.min(axisStart + Math.round((ratio * SPAN) / 15) * 15, axisEnd - 15);
     // Can't scrub into the past — on today the floor is the current 15-min block.
-    const floor = isToday ? Math.floor(nowMin / 15) * 15 : DAY_START;
+    const floor = isToday ? Math.floor(nowMin / 15) * 15 : axisStart;
     m = Math.max(m, floor);
     onChange(m);
   };
 
   const step = 20;
   const segs = [];
-  for (let t = DAY_START; t < DAY_END; t += step) {
+  for (let t = axisStart; t < axisEnd; t += step) {
     const c = countAt(t);
     const tot = totalOf(t);
     segs.push(
@@ -99,7 +106,7 @@ export function TimeBar({
         key={t}
         className={styles.seg}
         style={{
-          left: `${((t - DAY_START) / SPAN) * 100}%`,
+          left: `${((t - axisStart) / SPAN) * 100}%`,
           width: `${(step / SPAN) * 100}%`,
           background: colorForCount(c, tot),
           opacity: c === 0 ? 0.4 : 0.4 + 0.45 * (tot ? c / tot : 0),
@@ -108,12 +115,16 @@ export function TimeBar({
     );
   }
 
-  // Hourly indicators (8a → 12a), labeled every 2 hours to stay legible.
+  // Hourly indicators across the axis; label less often when the span is wide (a full
+  // 24h axis labels every 4h, the standard 16h frame every 2h) to stay legible.
+  const startH = Math.ceil(axisStart / 60);
+  const endH = Math.floor(axisEnd / 60);
+  const labelEvery = SPAN > 16 * 60 ? 4 : 2;
   const axisTicks = [];
-  for (let h = 8; h <= 24; h++) {
-    const pct = ((h * 60 - DAY_START) / SPAN) * 100;
-    const labeled = (h - 8) % 2 === 0;
-    const mer = h < 12 || h === 24 ? "a" : "p";
+  for (let h = startH; h <= endH; h++) {
+    const pct = ((h * 60 - axisStart) / SPAN) * 100;
+    const labeled = (h - startH) % labelEvery === 0;
+    const mer = h % 24 < 12 ? "a" : "p";
     const hh = h % 12 === 0 ? 12 : h % 12;
     axisTicks.push(
       <span key={h} className={styles.tick} style={{ left: `${pct}%` }}>
@@ -139,7 +150,7 @@ export function TimeBar({
 
   // Grey out everything before now (today only), snapped down to a 15-min mark.
   const pastCutoff = Math.floor(nowMin / 15) * 15;
-  const pastPct = ((pastCutoff - DAY_START) / SPAN) * 100;
+  const pastPct = ((pastCutoff - axisStart) / SPAN) * 100;
 
   return (
     <div className={`${styles.timebox} ${compact ? styles.compactBox : ""}`}>
@@ -196,22 +207,28 @@ export function TimeBar({
         {segs}
         {/* Closed all day (null window, incl. absent-grid days) → grey the whole track. */}
         {open === null && <div className={styles.closedOv} style={{ left: 0, width: "100%" }} />}
-        {open && open[0] > DAY_START && (
-          <div className={styles.closedOv} style={{ left: 0, width: `${((open[0] - DAY_START) / SPAN) * 100}%` }} />
+        {open && open[0] > axisStart && (
+          <div className={styles.closedOv} style={{ left: 0, width: `${((open[0] - axisStart) / SPAN) * 100}%` }} />
         )}
-        {open && open[1] < DAY_END && (
+        {open && open[1] < axisEnd && (
           <div
             className={styles.closedOv}
-            style={{ left: `${((open[1] - DAY_START) / SPAN) * 100}%`, width: `${((DAY_END - open[1]) / SPAN) * 100}%` }}
+            style={{ left: `${((open[1] - axisStart) / SPAN) * 100}%`, width: `${((axisEnd - open[1]) / SPAN) * 100}%` }}
           />
         )}
         {isToday && pastPct > 0 && (
           <div className={styles.past} style={{ width: `${pastPct}%` }} />
         )}
         {isToday && (
-          <div className={styles.nowline} style={{ left: `${((nowMin - DAY_START) / SPAN) * 100}%` }} />
+          <div className={styles.nowline} style={{ left: `${((nowMin - axisStart) / SPAN) * 100}%` }} />
         )}
-        <div className={styles.thumb} style={{ left: `${((selMin - DAY_START) / SPAN) * 100}%` }} />
+        {/* Clamp to the axis: the shared selMin can land outside this library's frame
+            (e.g. a 2:30am time carried over to a library that opens at 9a) — pin the thumb
+            to the edge rather than letting it fly off-screen. */}
+        <div
+          className={styles.thumb}
+          style={{ left: `${Math.max(0, Math.min(100, ((selMin - axisStart) / SPAN) * 100))}%` }}
+        />
       </div>
       <div className={styles.axis}>{axisTicks}</div>
     </div>

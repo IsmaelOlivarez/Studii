@@ -10,7 +10,8 @@ import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount, nextFreeMinute } from "@/lib/time/slots";
 import { fmtTime, minutesNow, ymd } from "@/lib/time/date";
-import { isOpenAt, opensLaterToday } from "@/lib/time/hours";
+import { isOpenAt, opensLaterToday, typicalWindow, displayWindow } from "@/lib/time/hours";
+import type { OpenWindow } from "@/lib/time/hours";
 import type { AvailabilitySnapshot, Library } from "@/domain/types";
 
 const NOON = 12 * 60; // deterministic default for SSR/first paint
@@ -24,6 +25,19 @@ const parseISO = (iso: string) => {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
 };
+
+// The visible time axis never shrinks below the familiar 8a–midnight frame; it only
+// EXTENDS to cover a window that runs earlier or later (e.g. 24h Butler → full 00:00–24:00).
+const axisBounds = (win: OpenWindow): [number, number] => [
+  Math.min(DAY_START, win?.[0] ?? DAY_START),
+  Math.max(DAY_END, win?.[1] ?? DAY_END),
+];
+// Union of several open windows (ignoring closed/null ones); null when all are closed.
+const unionWindow = (wins: OpenWindow[]): OpenWindow =>
+  wins.reduce<OpenWindow>(
+    (acc, w) => (!w ? acc : !acc ? [w[0], w[1]] : [Math.min(acc[0], w[0]), Math.max(acc[1], w[1])]),
+    null,
+  );
 
 async function fetchSnapshot(slug: string): Promise<AvailabilitySnapshot | null> {
   try {
@@ -127,7 +141,17 @@ export function StudiiApp() {
   // Map view: every library's availability on the selected date, at the selected time
   // (shared with detail). Each library's open window comes from its grid for this day
   // (null = closed/absent → 0 free + a Closed state).
-  const libWins = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey]?.open ?? null);
+  // Each library's window for this day, REPAIRED for today: LibCal omits past slots so
+  // today's returned window starts at ~now, which falsely greys the day as "closed until
+  // now" (glaring for 24h Butler). displayWindow restores the real opening from the
+  // library's typical hours. Future days pass through unchanged.
+  const libWins = LIBRARIES.map((lib) => {
+    const raw = snapshots[lib.slug].days[dayKey]?.open ?? null;
+    const typical = typicalWindow(
+      Object.values(snapshots[lib.slug].days).map((d) => d.open ?? null),
+    );
+    return displayWindow(raw, isToday, nowMin, typical);
+  });
   const libDays = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey]?.rooms ?? []);
   // Close minute per library for the day → bounds bookability (a room that can't fit a
   // 30-min block before close reads unavailable). DAY_END when open past the window.
@@ -166,9 +190,19 @@ export function StudiiApp() {
     libStats.map((s) => s.nextFree).filter((m): m is number => m != null).sort((a, b) => a - b)[0] ?? null;
   // Scrub to a specific minute (used by the "Next open" jumps); drops live mode.
   const jumpTo = (min: number) => onScrub(min);
+  // Map axis spans the UNION of both libraries' hours (so Butler's 24h stretches it to a
+  // full 00:00–24:00); the union also drives the map's closed-time greying.
+  const campusWin = unionWindow(libWins);
+  const [mapAxisStart, mapAxisEnd] = axisBounds(campusWin);
 
-  // Detail view: the active library's window for this day (null = closed all day).
-  const detailWin = snapshot.days[dayKey]?.open ?? null;
+  // Detail view: the active library's window for this day (null = closed all day),
+  // repaired for today the same way as the map (see libWins).
+  const detailWin = displayWindow(
+    snapshot.days[dayKey]?.open ?? null,
+    isToday,
+    nowMin,
+    typicalWindow(Object.values(snapshot.days).map((d) => d.open ?? null)),
+  );
   const detailClosed = !isOpenAt(detailWin, selMin);
   const detailOpensMin = opensLaterToday(detailWin, selMin);
   const detailCloseMin = detailWin?.[1] ?? DAY_END;
@@ -179,6 +213,9 @@ export function StudiiApp() {
   // Soonest bookable minute in the active library when nothing is open now → powers the
   // "Next open" jump on the detail time bar.
   const detailNextFree = detailFree === 0 ? nextFreeMinute(day, selMin, detailWin) : null;
+  // Detail axis spans the active library's real hours — full 00:00–24:00 for 24h Butler,
+  // the standard frame (with closed edges greyed) otherwise.
+  const [detailAxisStart, detailAxisEnd] = axisBounds(detailWin);
 
   const activeRoomObj = activeRoom ? activeLibrary.rooms.find((r) => r.id === activeRoom) ?? null : null;
   const activeBusy = activeRoom ? day.find((r) => r.roomId === activeRoom)?.busy ?? [] : [];
@@ -209,6 +246,9 @@ export function StudiiApp() {
                 totalAt: campusOpenTotal,
                 nextFree: campusNextFree,
                 onJump: jumpTo,
+                open: campusWin,
+                axisStart: mapAxisStart,
+                axisEnd: mapAxisEnd,
               }}
             />
           </div>
@@ -239,7 +279,7 @@ export function StudiiApp() {
           <div className={styles.scroll}>
             <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={setDateIdx} />
-            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} />
+            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailWin} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} axisStart={detailAxisStart} axisEnd={detailAxisEnd} />
             <div style={{ height: 14 }} />
           </div>
         </section>
@@ -253,6 +293,7 @@ export function StudiiApp() {
           dateLabel={dateLabel}
           closed={detailClosed}
           closeMin={detailCloseMin}
+          openMin={detailWin?.[0] ?? DAY_START}
           opensMin={detailOpensMin}
           open={!!activeRoom}
           onClose={() => setActiveRoom(null)}

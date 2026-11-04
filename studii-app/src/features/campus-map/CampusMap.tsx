@@ -30,6 +30,9 @@ export interface MapTimeControls {
   totalAt: (min: number) => number; // rooms in libraries OPEN at a minute (closed drop out)
   nextFree: number | null; // earliest minute ANY library has a bookable room (0 open now)
   onJump: (min: number) => void; // scrub to a minute (used by the "Next open" jump)
+  open: [number, number] | null; // union of both libraries' hours → greys all-closed time
+  axisStart: number; // visible axis bounds (extended to a full day when any lib is 24h)
+  axisEnd: number;
 }
 
 // Status is RELATIVE to the building's room count so it reads the same whether a
@@ -102,6 +105,9 @@ export function CampusMap({
           onNow={time.onNow}
           nextFree={time.nextFree}
           onJump={time.onJump}
+          open={time.open}
+          axisStart={time.axisStart}
+          axisEnd={time.axisEnd}
         />
       </div>
 

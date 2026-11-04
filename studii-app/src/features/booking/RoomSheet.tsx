@@ -29,6 +29,7 @@ export function RoomSheet({
   dateLabel,
   closed = false,
   closeMin = DAY_END,
+  openMin = DAY_START,
   opensMin = null,
   open,
   onClose,
@@ -41,6 +42,7 @@ export function RoomSheet({
   dateLabel: string;
   closed?: boolean; // library closed at selMin (incl. absent-grid days) → not bookable
   closeMin?: number; // library's close minute → caps the bookable window
+  openMin?: number; // library's open minute → day-strip spans the real hours (24h Butler)
   opensMin?: number | null; // when it opens later that day, if applicable
   open: boolean;
   onClose: () => void;
@@ -164,10 +166,23 @@ export function RoomSheet({
 
   const blockCount = Math.max(1, Math.round((dur || 30) / 30));
 
+  // The strip spans the library's real hours: it never shrinks below 8a–midnight, and
+  // extends to a full 00:00–24:00 for a 24-hour library (Butler). Hours outside the open
+  // window (before it opens / after it closes) render booked-style.
+  const stripStart = Math.min(DAY_START, openMin);
+  const stripEnd = Math.max(DAY_END, closeMin);
+  const stripSpan = stripEnd - stripStart;
+  const hrLbl = (min: number) => {
+    const h = Math.round(min / 60) % 24;
+    const mer = h < 12 ? "a" : "p";
+    return `${h % 12 === 0 ? 12 : h % 12}${mer}`;
+  };
+  const stripMarks = [0, 1, 2, 3].map((k) => hrLbl(stripStart + (stripSpan * k) / 3));
+
   const blocks = [];
-  for (let t = DAY_START; t < DAY_END; t += 30) {
-    const past = closeMin < DAY_END && t >= closeMin; // past real close → unbookable
-    const bk = room ? busyAt(busy, t) || past : false;
+  for (let t = stripStart; t < stripEnd; t += 30) {
+    const outside = t < openMin || (closeMin < stripEnd && t >= closeMin); // outside hours
+    const bk = room ? busyAt(busy, t) || outside : false;
     const inPlan = !busyNow && dur > 0 && t >= selMin && t < endMin;
     const isCur = selMin >= t && selMin < t + 30;
     blocks.push(
@@ -191,7 +206,7 @@ export function RoomSheet({
             </div>
             <div className={styles.atline} dangerouslySetInnerHTML={{ __html: `Status at <b>${f.str} ${f.mer}</b>, ${dateLabel}` }} />
             <div className={styles.daystrip}>{blocks}</div>
-            <div className={styles.striplbl}><span>8a</span><span>2p</span><span>8p</span><span>12a</span></div>
+            <div className={styles.striplbl}>{stripMarks.map((m, i) => <span key={i}>{m}</span>)}</div>
             <div className={styles.nextfree} dangerouslySetInnerHTML={{ __html: msg }} />
 
             {!closed && !busyNow && maxDur >= 30 && (
