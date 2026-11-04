@@ -1,5 +1,11 @@
 // Domain constants shared across the app.
 
+// All Columbia libraries sit in this timezone, so EVERY notion of "today" and "now"
+// is anchored here — never to the runtime's local zone. The poller runs on UTC
+// servers and viewers may be anywhere; without this, "today" rolls over at UTC
+// midnight (~19:00 Eastern) and the current Eastern day drops out of the data.
+export const LIBRARY_TZ = "America/New_York";
+
 export const DAY_START = 8 * 60; // 08:00 — first bookable minute shown
 export const DAY_END = 24 * 60; // 24:00 — end of the day window
 export const SLOT_MINUTES = 15; // LibCal grid granularity

@@ -9,14 +9,15 @@ import { RoomSheet } from "@/features/booking/RoomSheet";
 import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount, nextFreeMinute } from "@/lib/time/slots";
-import { fmtTime, ymd } from "@/lib/time/date";
+import { fmtTime, minutesNow, ymd } from "@/lib/time/date";
 import { isOpenAt, opensLaterToday } from "@/lib/time/hours";
 import type { AvailabilitySnapshot, Library } from "@/domain/types";
 
 const NOON = 12 * 60; // deterministic default for SSR/first paint
 const clampNow = () => {
-  const d = new Date();
-  const m = d.getHours() * 60 + d.getMinutes();
+  // "Now" in the library's timezone — so a viewer outside Eastern still scrubs to the
+  // correct local-to-the-library minute (and matches the day the data is keyed by).
+  const m = minutesNow();
   return Math.min(Math.max(m, DAY_START), DAY_END - 15);
 };
 const parseISO = (iso: string) => {
