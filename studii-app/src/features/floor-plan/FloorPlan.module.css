@@ -20,9 +20,11 @@
 .entry{left:50%;bottom:10px;transform:translateX(-50%);width:34%;height:12%;background:none;box-shadow:none;color:var(--ink-faint)}
 
 .room{position:absolute;border-radius:8px;cursor:pointer;padding:6px 7px;
-  display:flex;flex-direction:column;justify-content:center;
+  display:flex;flex-direction:column;justify-content:flex-end;
   box-shadow:0 4px 10px -6px rgba(var(--shadow),.5);transition:transform .18s, box-shadow .18s;
   border:1.5px solid transparent;font-family:var(--font-ui)}
+/* Number sits at the base of the tile so the top-right status badge (.rd) never lands on
+   top of it — matters most on the short tiles where a centered label collides with it. */
 .room:active{transform:scale(.95)}
 .rn{font-family:var(--font-display);font-size:14px;font-weight:600;line-height:1}
 /* Status chip: a GLYPH (not just a colored dot) so status reads without relying on hue.
@@ -80,6 +82,6 @@
 .floorTabOn em{color:var(--paper-2)}
 
 /* compact arc tiles: number + status dot only (capacity is uniform, noted above) */
-.compact{padding:0;align-items:center;justify-content:center;border-radius:8px}
+.compact{padding:0 0 3px;align-items:center;justify-content:flex-end;border-radius:8px}
 .compact .rn{font-size:14px}
 .compact .rd{top:3px;right:3px;width:14px;height:14px;font-size:9.5px}
