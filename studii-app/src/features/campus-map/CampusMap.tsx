@@ -82,16 +82,11 @@ export function CampusMap({
     <>
       <div className={`${B.brand} anim d1`}>
         <h1>Stud<i>ii</i></h1>
-        <div className={B.loc}>Columbia<b>Morningside</b></div>
-      </div>
-
-      <div className={`${B.greet} anim d2`}>
-        <div className={B.eyebrow}>Midterm season · live</div>
-        <p>Don&apos;t wander the stacks.<br /><b>See what&apos;s open</b> before you walk over.</p>
+        <div className={B.loc}>Morningside</div>
       </div>
 
       {/* Shared date + time controls — scrub to see every library at that moment. */}
-      <div className={`${B.maptime} anim d3`}>
+      <div className={`${B.maptime} anim d2`}>
         <DateChips dateKeys={time.dateKeys} activeIdx={time.dateIdx} onSelect={time.onSelectDate} compact />
         <TimeBar
           compact
