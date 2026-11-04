@@ -4,6 +4,8 @@ import styles from "./TimeBar.module.css";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
+import { isOpenAt, closeAfter, opensLaterToday, closedStretches } from "@/lib/time/hours";
+import type { OpenHours } from "@/lib/time/hours";
 import type { RoomAvailability } from "@/domain/types";
 
 // Color by share of rooms free, so it reads the same for a 6-room or 17-room library.
@@ -52,10 +54,10 @@ export function TimeBar({
   showNow?: boolean;
   /** Show the "N of M rooms open" line (detail view moves the count into the header). */
   showCount?: boolean;
-  /** Open window `[start,end)` for this library/date; `null` = closed all day;
-   *  omit = always open. `null` = closed all day (incl. absent-grid days). Closed
-   *  stretches are greyed and read as 0 open. */
-  open?: [number, number] | null;
+  /** Open INTERVALS for this library/date (gaps between them = closed); empty array =
+   *  closed all day; omit = always open. Closed stretches (before open, between gaps,
+   *  after close) are greyed and read as 0 open. */
+  open?: OpenHours;
   /** Soonest minute a room frees up when 0 are open at `selMin` — surfaces a one-tap
    *  "Next open" jump out of a nothing-available dead end. null = nothing more today. */
   nextFree?: number | null;
@@ -68,19 +70,17 @@ export function TimeBar({
   axisEnd?: number;
 }) {
   const SPAN = axisEnd - axisStart;
-  // Cap bookability at close (detail view derives it from `open`; the map supplies its
-  // own per-library `freeAt`). A room that can't fit a 30-min block before close reads
-  // as unavailable, so segments just before closing go red like booked ones.
-  const cap = open?.[1] ?? DAY_END;
-  const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t, cap));
+  // Cap bookability at the end of the open interval covering `t` (detail view derives it
+  // from `open`; the map supplies its own `freeAt`). A room that can't fit a 30-min block
+  // before that close reads as unavailable, so segments just before closing go red.
+  const capAt = (t: number) => (open ? closeAfter(open, t) || DAY_END : DAY_END);
+  const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t, capAt(t)));
   // Denominator at a minute: rooms actually in service then (drops closed libraries
   // on the map). Defaults to the fixed total (detail view: a single library).
   const totalOf = totalAt ?? (() => total);
-  const closedAt = (t: number) => {
-    if (open === undefined) return false;
-    if (open === null) return true;
-    return t < open[0] || t >= open[1];
-  };
+  // Closed at `t` when hours are supplied and no interval covers it (before open, in a
+  // mid-day gap, or after close). `open` omitted → treated as always open.
+  const closedAt = (t: number) => (open === undefined ? false : !isOpenAt(open, t));
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -143,8 +143,9 @@ export function TimeBar({
   const denom = totalOf(selMin);
   const liveNow = live && isToday;
 
-  // If closed now but opens later this day, surface the opening time.
-  const opensMin = open && selMin < open[0] ? open[0] : null;
+  // If closed now but opens later this day (incl. reopening after a mid-day gap), surface
+  // the next opening time.
+  const opensMin = open ? opensLaterToday(open, selMin) : null;
   const of = opensMin != null ? fmtTime(opensMin) : null;
   const opensSuffix = of ? ` · opens ${of.str}${of.mer}` : "";
 
@@ -205,17 +206,16 @@ export function TimeBar({
         onPointerCancel={() => (dragging.current = false)}
       >
         {segs}
-        {/* Closed all day (null window, incl. absent-grid days) → grey the whole track. */}
-        {open === null && <div className={styles.closedOv} style={{ left: 0, width: "100%" }} />}
-        {open && open[0] > axisStart && (
-          <div className={styles.closedOv} style={{ left: 0, width: `${((open[0] - axisStart) / SPAN) * 100}%` }} />
-        )}
-        {open && open[1] < axisEnd && (
-          <div
-            className={styles.closedOv}
-            style={{ left: `${((open[1] - axisStart) / SPAN) * 100}%`, width: `${((axisEnd - open[1]) / SPAN) * 100}%` }}
-          />
-        )}
+        {/* Grey every closed stretch within the axis — before open, the gaps BETWEEN open
+            intervals (e.g. Uris's 02:45–09:00 overnight gap), and after close. */}
+        {open !== undefined &&
+          closedStretches(open, axisStart, axisEnd).map(([s, e]) => (
+            <div
+              key={s}
+              className={styles.closedOv}
+              style={{ left: `${((s - axisStart) / SPAN) * 100}%`, width: `${((e - s) / SPAN) * 100}%` }}
+            />
+          ))}
         {isToday && pastPct > 0 && (
           <div className={styles.past} style={{ width: `${pastPct}%` }} />
         )}

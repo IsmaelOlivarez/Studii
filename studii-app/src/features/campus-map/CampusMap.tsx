@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import styles from "./CampusMap.module.css";
 import { DateChips } from "@/features/availability/DateChips";
 import { TimeBar } from "@/features/availability/TimeBar";
+import type { OpenHours } from "@/lib/time/hours";
 import type { Library } from "@/domain/types";
 
 /** One library's headline for the map: how many of its rooms are free at the time. */
@@ -30,7 +31,7 @@ export interface MapTimeControls {
   totalAt: (min: number) => number; // rooms in libraries OPEN at a minute (closed drop out)
   nextFree: number | null; // earliest minute ANY library has a bookable room (0 open now)
   onJump: (min: number) => void; // scrub to a minute (used by the "Next open" jump)
-  open: [number, number] | null; // union of both libraries' hours → greys all-closed time
+  open: OpenHours; // union of both libraries' open intervals → greys only all-closed time
   axisStart: number; // visible axis bounds (extended to a full day when any lib is 24h)
   axisEnd: number;
 }

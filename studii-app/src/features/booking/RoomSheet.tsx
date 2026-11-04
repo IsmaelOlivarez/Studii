@@ -6,6 +6,8 @@ import { busyAt, openUntil, nextOpen } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
 import { libcalDeepLink } from "./deeplink";
 import { DAY_START } from "@/domain/constants";
+import { isOpenAt, spanOf } from "@/lib/time/hours";
+import type { OpenHours } from "@/lib/time/hours";
 import type { BusyRange, Library, Room } from "@/domain/types";
 
 // Users who tick "don't show again" skip the pre-booking notice from then on
@@ -29,7 +31,7 @@ export function RoomSheet({
   dateLabel,
   closed = false,
   closeMin = DAY_END,
-  openMin = DAY_START,
+  openHours = [],
   opensMin = null,
   open,
   onClose,
@@ -41,8 +43,8 @@ export function RoomSheet({
   date: string;
   dateLabel: string;
   closed?: boolean; // library closed at selMin (incl. absent-grid days) → not bookable
-  closeMin?: number; // library's close minute → caps the bookable window
-  openMin?: number; // library's open minute → day-strip spans the real hours (24h Butler)
+  closeMin?: number; // close of the interval covering selMin → caps the bookable window
+  openHours?: OpenHours; // the day's open intervals → day-strip spans real hours + greys gaps
   opensMin?: number | null; // when it opens later that day, if applicable
   open: boolean;
   onClose: () => void;
@@ -167,10 +169,11 @@ export function RoomSheet({
   const blockCount = Math.max(1, Math.round((dur || 30) / 30));
 
   // The strip spans the library's real hours: it never shrinks below 8a–midnight, and
-  // extends to a full 00:00–24:00 for a 24-hour library (Butler). Hours outside the open
-  // window (before it opens / after it closes) render booked-style.
-  const stripStart = Math.min(DAY_START, openMin);
-  const stripEnd = Math.max(DAY_END, closeMin);
+  // extends to a full 00:00–24:00 for a 24-hour library (Butler). Any time outside the open
+  // intervals — before open, a mid-day closed gap, or after close — renders booked-style.
+  const span = spanOf(openHours);
+  const stripStart = Math.min(DAY_START, span?.[0] ?? DAY_START);
+  const stripEnd = Math.max(DAY_END, span?.[1] ?? DAY_END);
   const stripSpan = stripEnd - stripStart;
   const hrLbl = (min: number) => {
     const h = Math.round(min / 60) % 24;
@@ -181,7 +184,7 @@ export function RoomSheet({
 
   const blocks = [];
   for (let t = stripStart; t < stripEnd; t += 30) {
-    const outside = t < openMin || (closeMin < stripEnd && t >= closeMin); // outside hours
+    const outside = !isOpenAt(openHours, t); // before open, in a closed gap, or after close
     const bk = room ? busyAt(busy, t) || outside : false;
     const inPlan = !busyNow && dur > 0 && t >= selMin && t < endMin;
     const isCur = selMin >= t && selMin < t + 30;

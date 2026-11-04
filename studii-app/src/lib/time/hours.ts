@@ -1,56 +1,105 @@
-// Operating-hours helpers. Hours come from the LibCal grid itself — each day's
-// `DayAvailability.open` window = the span of returned slots (see normalize.ts) —
-// so reduced hours, holidays and closures are handled with no hardcoding. A day the
-// grid never returned has NO window (`null`) and is treated as CLOSED all day.
+// Operating-hours helpers. Hours come from the LibCal grid itself (see normalize.ts): a
+// day's `DayAvailability.open` is the list of OPEN INTERVALS = contiguous runs of returned
+// slots. Reduced hours, holidays and closures fall out for free. Crucially, a library can
+// have a CLOSED GAP within a day — e.g. Uris open 00:00–02:45 (late-night tail) then again
+// 09:00–24:00 — so hours are a list of intervals, NOT a single bridging span (a single
+// [min,max] would wrongly read the 02:45–09:00 gap as open). An empty list = closed all day.
 //
-// These operate on a window tuple `[startMin, endMin)` (or null), not on a Library.
+// Intervals are sorted and non-overlapping. These operate on the list, never on a Library.
 
-export type OpenWindow = [number, number] | null;
+export type OpenHours = [number, number][];
 
-/** Is the library open at `min`? (false when `win` is null → closed all day). */
-export function isOpenAt(win: OpenWindow, min: number): boolean {
-  return !!win && min >= win[0] && min < win[1];
+/** Is the library open at `min`? (any interval contains it). */
+export function isOpenAt(hours: OpenHours, min: number): boolean {
+  return hours.some(([s, e]) => min >= s && min < e);
 }
 
 /**
- * If it's closed at `min` but opens later the same day, the opening minute; else null
- * (open now, or closed for the rest of the day / no window at all).
+ * End of the open interval covering `min` — the booking cap, since you can't book across a
+ * closed gap or past close. Returns `min` unchanged when closed at `min`.
  */
-export function opensLaterToday(win: OpenWindow, min: number): number | null {
-  return win && min < win[0] ? win[0] : null;
+export function closeAfter(hours: OpenHours, min: number): number {
+  for (const [s, e] of hours) if (min >= s && min < e) return e;
+  return min;
+}
+
+/**
+ * If it's closed at `min` but opens later the same day, that next opening; else null
+ * (open now — including mid-gap-free intervals — or closed for the rest of the day).
+ */
+export function opensLaterToday(hours: OpenHours, min: number): number | null {
+  if (isOpenAt(hours, min)) return null;
+  for (const [s] of hours) if (min < s) return s; // sorted → first start after min
+  return null;
+}
+
+/** Overall [earliest open, latest close] across the day's intervals (for the axis span &
+ *  labels); null when closed all day. */
+export function spanOf(hours: OpenHours): [number, number] | null {
+  return hours.length ? [hours[0][0], hours[hours.length - 1][1]] : null;
+}
+
+/** Merge several libraries' intervals into one sorted, non-overlapping set (the campus
+ *  "open" hours — open wherever ANY library is open; closed only where all are). */
+export function mergeHours(sets: OpenHours[]): OpenHours {
+  const all = sets.flat().slice().sort((a, b) => a[0] - b[0]);
+  const out: OpenHours = [];
+  for (const [s, e] of all) {
+    const last = out[out.length - 1];
+    if (last && s <= last[1]) last[1] = Math.max(last[1], e); // touching/overlapping → extend
+    else out.push([s, e]);
+  }
+  return out;
+}
+
+/** The closed stretches of `[from, to)` not covered by any open interval (for greying). */
+export function closedStretches(hours: OpenHours, from: number, to: number): [number, number][] {
+  if (hours.length === 0) return from < to ? [[from, to]] : [];
+  const out: [number, number][] = [];
+  let cursor = from;
+  for (const [s, e] of hours) {
+    if (s > cursor) out.push([cursor, Math.min(s, to)]);
+    cursor = Math.max(cursor, e);
+    if (cursor >= to) break;
+  }
+  if (cursor < to) out.push([cursor, to]);
+  return out;
 }
 
 /**
  * The library's "typical" operating envelope — the widest [earliest open, latest close]
- * across every returned day. Used to REPAIR today's window: LibCal only returns FUTURE
- * slots, so today's returned window starts at ~now, not the real opening (a 24h library
- * loaded at 9pm looks like it "opens at 9pm"). null when no day has a window.
+ * across every returned day. Used to REPAIR today's hours: LibCal only returns FUTURE
+ * slots, so today's first interval starts at ~now, not the real opening (a 24h library
+ * loaded at 9pm looks like it "opens at 9pm"). null when no day has hours.
  */
-export function typicalWindow(wins: OpenWindow[]): OpenWindow {
+export function typicalWindow(hoursList: OpenHours[]): [number, number] | null {
   let start = Infinity;
   let end = -Infinity;
-  for (const w of wins) {
-    if (!w) continue;
-    if (w[0] < start) start = w[0];
-    if (w[1] > end) end = w[1];
+  for (const h of hoursList) {
+    const sp = spanOf(h);
+    if (!sp) continue;
+    if (sp[0] < start) start = sp[0];
+    if (sp[1] > end) end = sp[1];
   }
   return Number.isFinite(start) && end > start ? [start, end] : null;
 }
 
 /**
- * The window to DISPLAY/decide-open-status for a date. Future days are returned whole, so
- * they pass through. TODAY's start is unreliable (past slots omitted → it starts at ~now),
- * so when the library is ALREADY open now we restore the real opening from `typical`. We
- * only ever widen the START (the END — future slots — is accurate); if the returned start
- * is still in the future it's a genuine late/reduced open and is left alone.
+ * The hours to DISPLAY/decide-open-status for a date. Future days are returned whole, so
+ * they pass through. TODAY's first interval starts at ~now (past slots omitted), so when the
+ * library is ALREADY open now we widen that FIRST interval's start back to the real opening
+ * from `typical`. Only the start is touched (the end — future slots — is accurate); a start
+ * still in the future is a genuine late/reduced open and is left alone. Later intervals and
+ * their gaps are untouched.
  */
-export function displayWindow(
-  dayWin: OpenWindow,
+export function displayHours(
+  dayHours: OpenHours,
   isToday: boolean,
   nowMin: number,
-  typical: OpenWindow,
-): OpenWindow {
-  if (!dayWin || !isToday || !typical) return dayWin;
-  if (dayWin[0] <= nowMin && typical[0] < dayWin[0]) return [typical[0], dayWin[1]];
-  return dayWin;
+  typical: [number, number] | null,
+): OpenHours {
+  if (!isToday || dayHours.length === 0 || !typical) return dayHours;
+  const [s, e] = dayHours[0];
+  if (s <= nowMin && typical[0] < s) return [[typical[0], e], ...dayHours.slice(1)];
+  return dayHours;
 }

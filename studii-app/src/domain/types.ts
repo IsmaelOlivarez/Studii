@@ -35,9 +35,12 @@ export interface RoomAvailability {
 /** One library's availability for one date. Present in a snapshot IFF LibCal returned
  *  a grid for that day; a day with no grid is absent → treated as CLOSED (not free). */
 export interface DayAvailability {
-  /** Grid-derived open window `[startMin, endMin)` — the span of returned slots, i.e.
-   *  the day's true bookable hours (reduced/holiday hours included). */
-  open: [number, number];
+  /** Grid-derived OPEN INTERVALS `[startMin, endMin)[]` — contiguous runs of returned
+   *  slots, i.e. the day's true bookable hours (reduced/holiday hours included). A library
+   *  can close mid-day (e.g. a late-night tail then a daytime block), so this is a LIST of
+   *  intervals with the closed gaps between them, never a single bridging span. Sorted,
+   *  non-overlapping; empty only in the degenerate no-slot case (absent days are omitted). */
+  open: [number, number][];
   rooms: RoomAvailability[];
 }
 

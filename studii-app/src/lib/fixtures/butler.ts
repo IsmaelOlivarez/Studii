@@ -50,7 +50,7 @@ function toRoomAvail(raw: RawDay): RoomAvailability[] {
 export function butlerFixture(n = 5): AvailabilitySnapshot {
   const days: AvailabilitySnapshot["days"] = {};
   for (let i = 0; i < n; i++) {
-    days[ymd(i)] = { open: [0, 24 * 60], rooms: toRoomAvail(PATTERNS[i % PATTERNS.length]) };
+    days[ymd(i)] = { open: [[0, 24 * 60]], rooms: toRoomAvail(PATTERNS[i % PATTERNS.length]) };
   }
   return { librarySlug: BUTLER.slug, fetchedAt: new Date().toISOString(), days };
 }
