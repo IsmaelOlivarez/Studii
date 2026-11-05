@@ -65,12 +65,12 @@ const PLACEMENT: Record<
     ring: { left: "50%", top: "24.5%" },
     motif: "dome",
   },
-  // NoCo is the Northwest Corner Building — a tall, narrow tower at the far top-left
-  // corner of campus. So the hero is a thin, TALL vertical slab with its short name
-  // stacked upright down the tower, and the count ring capping the top as a live beacon.
+  // NoCo (Northwest Corner Building) sits in the top-left corner. Rendered as a short,
+  // horizontal bar: the count ring sits at the LEFT (vertically centered) and the name
+  // runs the long way to its RIGHT.
   "science-eng": {
-    hero: { left: "2.5%", top: "3%", width: "12%", height: "50%" },
-    ring: { left: "8.5%", top: "6.5%" },
+    hero: { left: "2.5%", top: "3%", width: "34%", height: "12%" },
+    ring: { left: "9%", top: "9%" },
     motif: "tower",
     tall: true,
   },
@@ -200,13 +200,9 @@ export function CampusMap({
                 aria-label={`Open ${library.name}`}
               >
                 {place.tall ? (
-                  // Tall tower (NoCo): the short name stacked UPRIGHT down the slab, each
-                  // letter facing the viewer; the pulsing ring that caps it is the live cue.
-                  <span className={B.nmV}>
-                    {library.shortName.split("").map((ch, i) => (
-                      <span key={i}>{ch}</span>
-                    ))}
-                  </span>
+                  // NoCo bar: the ring sits at the left (vertically centered); the name
+                  // runs the long way to its right.
+                  <span className={B.nm}>{library.shortName}</span>
                 ) : (
                   <>
                     {/* Marks this as one of the few LIVE, tappable buildings among the
