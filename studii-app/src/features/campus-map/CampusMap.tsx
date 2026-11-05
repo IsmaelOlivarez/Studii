@@ -53,7 +53,7 @@ function statusOf(free: number, total: number): { cls: string; color: string; wo
 // campus — with a glass-tower motif echoing the modern NWC building.
 const PLACEMENT: Record<
   string,
-  { hero: React.CSSProperties; ring: React.CSSProperties; motif: "pillars" | "dome" | "tower" }
+  { hero: React.CSSProperties; ring: React.CSSProperties; motif: "pillars" | "dome" | "tower"; tall?: boolean }
 > = {
   butler: {
     hero: { left: "28%", top: "85%", width: "44%", height: "14%" },
@@ -65,10 +65,14 @@ const PLACEMENT: Record<
     ring: { left: "50%", top: "24.5%" },
     motif: "dome",
   },
+  // NoCo is the Northwest Corner Building — a tall, narrow tower at the far top-left
+  // corner of campus. So the hero is a thin VERTICAL slab (not a wide card), with its
+  // short name running up the tower and the count ring capping the top as a live beacon.
   "science-eng": {
-    hero: { left: "2.5%", top: "3%", width: "35%", height: "15%" },
-    ring: { left: "20%", top: "6.5%" },
+    hero: { left: "2.5%", top: "3.5%", width: "11.5%", height: "33%" },
+    ring: { left: "8.25%", top: "7%" },
     motif: "tower",
+    tall: true,
   },
 };
 
@@ -80,15 +84,16 @@ const PLACEMENT: Record<
 // lt = lighter stone (used for the slab-like edge/plaza buildings).
 type Scenery = { l: number; t: number; w: number; h: number; v?: boolean; lt?: boolean; name: string };
 const SCENERY: Scenery[] = [
-  // ── NORTH, west edge (Broadway side), N→S — NoCo hero owns the top-left corner ──
-  { l: 1.5, t: 17, w: 6.5, h: 11, v: true, lt: true, name: "Chandler" },
-  { l: 1.5, t: 29, w: 9, h: 9, name: "Havemeyer" },
-  { l: 1.5, t: 40, w: 6.5, h: 10, v: true, lt: true, name: "Mathematics" },
-  { l: 1.5, t: 51, w: 6.5, h: 10, v: true, lt: true, name: "Lewisohn" },
-  { l: 16, t: 58, w: 15, h: 5, name: "Dodge" },
+  // ── NORTH, west edge (Broadway side), N→S — the NoCo tower owns the top-left corner,
+  //    so this Broadway column resumes BELOW it (down to College Walk). ──
+  { l: 1.5, t: 38, w: 9, h: 6, name: "Chandler" },
+  { l: 1.5, t: 45, w: 10, h: 7, name: "Havemeyer" },
+  { l: 1.5, t: 53, w: 7, h: 9, v: true, lt: true, name: "Mathematics" },
+  { l: 9.5, t: 53, w: 6, h: 9, v: true, lt: true, name: "Lewisohn" },
+  { l: 18, t: 58, w: 14, h: 5, name: "Dodge" },
   // ── NORTH, top row along 120th St ──
-  { l: 12, t: 2, w: 15, h: 7, name: "Pupin" },
-  { l: 12, t: 10.5, w: 20, h: 8, lt: true, name: "Dodge Fitness" },
+  { l: 15, t: 2, w: 15, h: 7, name: "Pupin" },
+  { l: 15, t: 10.5, w: 20, h: 8, lt: true, name: "Dodge Fitness" },
   { l: 40, t: 2, w: 16, h: 8, name: "Schapiro" },
   { l: 60, t: 2, w: 15, h: 7, name: "Mudd" },
   { l: 82, t: 8, w: 11.5, h: 8, name: "Computer Science" },
@@ -213,20 +218,27 @@ export function CampusMap({
                 onClick={() => onEnter(library)}
                 aria-label={`Open ${library.name}`}
               >
-                {/* Marks this as one of the few LIVE, tappable buildings among the
-                    decorative campus — the rest are static scenery. */}
-                <span className={B.live}><i />Live</span>
-                {place.motif === "pillars" ? (
-                  <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
-                ) : place.motif === "dome" ? (
-                  <div className={B.dome} />
+                {place.tall ? (
+                  // Tall tower (NoCo): the glass-facade slab carries its short name
+                  // running up the tower; the pulsing ring that caps it is the live cue.
+                  <span className={B.nmV}>{library.shortName}</span>
                 ) : (
-                  <div className={B.tower}><i /><i /><i /></div>
+                  <>
+                    {/* Marks this as one of the few LIVE, tappable buildings among the
+                        decorative campus — the rest are static scenery. */}
+                    <span className={B.live}><i />Live</span>
+                    {place.motif === "pillars" ? (
+                      <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
+                    ) : place.motif === "dome" ? (
+                      <div className={B.dome} />
+                    ) : (
+                      <div className={B.tower}><i /><i /><i /></div>
+                    )}
+                    {/* A long name ("Science & Engineering Library") won't fit the small
+                        tile, so a library shows its short name when the full one is long. */}
+                    <div className={B.nm}>{library.name.length > 16 ? library.shortName : library.name}</div>
+                  </>
                 )}
-                {/* The hero tile is small; a long name ("Science & Engineering
-                    Library") won't fit, so NoCo shows its short name here. The full
-                    name still appears on the summary card below. */}
-                <div className={B.nm}>{library.name.length > 16 ? library.shortName : library.name}</div>
               </button>
             </Fragment>
           );
