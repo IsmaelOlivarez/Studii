@@ -10,35 +10,18 @@
 .mapWrap{margin:10px 20px 6px;position:relative;height:clamp(420px,52vh,520px);border-radius:var(--radius);
   background:var(--campus-ground);overflow:hidden;
   box-shadow:inset 0 0 0 1px var(--line), 0 12px 26px -16px rgba(var(--shadow),.5)}
-/* Warm stone paving across the whole block (buildings are the blue-stone slabs), with a
-   faint survey grid — the green is reserved for the lawns, as on the real campus. */
-.mapWrap::before{content:"";position:absolute;inset:0;z-index:0;opacity:.5;
-  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
-  background-size:30px 30px;mask-image:radial-gradient(120% 90% at 50% 45%,#000,transparent 92%)}
-
-/* The central mall greens: Low's plaza (north), the South Field lawns (south), joined by
-   the Low Steps + College Walk into one vertical spine down the middle of the block. */
-.mallLow{position:absolute;left:30%;top:40%;width:40%;height:24%;z-index:1;border-radius:14px 14px 8px 8px;
-  background:radial-gradient(130% 120% at 50% 20%,var(--campus-quad),#bcdccf)}
-.southField{position:absolute;left:26%;top:68%;width:48%;height:20%;z-index:1;border-radius:10px 10px 16px 16px;
-  background:radial-gradient(120% 130% at 50% 80%,#cbe6d9,var(--campus-quad))}
-/* trapezoid of steps fanning down from Low to College Walk (wide at the base) */
-.lowSteps{position:absolute;left:38%;top:56%;width:24%;height:8%;z-index:1;
-  clip-path:polygon(16% 0,84% 0,100% 100%,0 100%);
-  background:repeating-linear-gradient(#d6ccb3 0 2px,#e3d9bf 2px 5px)}
-.walk{position:absolute;left:0;right:0;top:63%;height:5.5%;background:#c9e4dc;
+.zone{position:absolute;left:0;right:0;background:var(--campus-quad)}
+.north{top:0;height:56%}
+.south{bottom:0;height:38%}
+.zone::after{content:"";position:absolute;inset:0;opacity:.35;
+  background-image:linear-gradient(var(--campus-ground) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--campus-ground) 1.5px,transparent 1.5px);
+  background-size:28px 28px}
+.walk{position:absolute;left:0;right:0;top:56%;height:6%;background:#c9e4dc;
   display:flex;align-items:center;justify-content:center;z-index:2;
   box-shadow:inset 0 1px 0 #a9cfc6, inset 0 -1px 0 #a9cfc6}
 .walk::before{content:"";position:absolute;inset:0;opacity:.7;
   background:repeating-linear-gradient(90deg,transparent 0 16px,#eaf4f0 16px 20px)}
 .walk span{position:relative;font-family:var(--font-mono);font-weight:700;font-size:9px;line-height:1;letter-spacing:.2em;color:#3a6358;text-transform:uppercase}
-
-/* Low Memorial Library — domed octagon on its steps, the center-north landmark. */
-.low{position:absolute;z-index:4;clip-path:polygon(28% 0,72% 0,100% 28%,100% 72%,72% 100%,28% 100%,0 72%,0 28%);
-  background:linear-gradient(160deg,#aecae1,#7ea6c9);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:flex-start;justify-content:center}
-.lowDome{width:34%;height:30%;margin-top:-9%;border-radius:50% 50% 42% 42%;
-  background:linear-gradient(160deg,#cfe0ee,#9bbcda);box-shadow:0 2px 4px -1px rgba(23,50,77,.3)}
 
 /* Decorative campus buildings — deliberately receded (lower opacity + slight
    desaturation) so the two LIVE, tappable library heroes read as the foreground. */
@@ -52,6 +35,11 @@
   opacity:.5;filter:saturate(.72)}
 .lt{background:linear-gradient(165deg,#bcd7e9,#9cc2df);color:transparent;text-shadow:none}
 .v{writing-mode:vertical-rl;transform:rotate(180deg)}
+.so{display:none}
+.lawn{position:absolute;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:9px;line-height:1.15;color:transparent;text-align:center}
+.sundial{position:absolute;z-index:4;left:50%;top:71%;transform:translateX(-50%);
+  width:10px;height:10px;border-radius:50%;background:var(--campus-ground);box-shadow:0 0 0 2px var(--campus-building)}
+.sundial span{display:none}
 
 /* library heroes on the map (position/size supplied inline per library) */
 .hero{position:absolute;border-radius:7px;cursor:pointer;z-index:6;border:none;
@@ -72,14 +60,15 @@
 .tower i{width:3px;background:var(--accent);opacity:.5;border-radius:1px}
 .tower i:nth-child(1){height:8px}.tower i:nth-child(2){height:13px}.tower i:nth-child(3){height:10px}
 .nm{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--ink)}
-/* NoCo: a thin, tall glass tower (the Northwest Corner Building). Vertical glass-pane
-   facade over the cream shell; the name runs up the slab; the ring caps it as a beacon. */
+/* NoCo: a thin, TALL glass tower (the Northwest Corner Building). Faint vertical glass-pane
+   facade over the cream shell; the ring caps the top as a beacon and the name sits at the base. */
 .science-eng{border-radius:5px;justify-content:flex-end;overflow:visible;
   background:
     repeating-linear-gradient(90deg,transparent 0 4px,rgba(44,74,110,.11) 4px 5px),
     linear-gradient(160deg,#fbf7ec,#f0e7d1)}
-.nmV{writing-mode:vertical-rl;font-family:var(--font-display);font-weight:600;font-size:13px;
-  letter-spacing:.04em;color:var(--ink);margin-bottom:9px}
+/* Short name stacked UPRIGHT down the tower — each letter its own line, facing the viewer. */
+.nmV{display:flex;flex-direction:column;align-items:center;gap:1px;margin-bottom:11px;
+  font-family:var(--font-display);font-weight:600;font-size:13px;line-height:1;color:var(--ink)}
 .sub{font-family:var(--font-mono);font-weight:600;font-size:7px;line-height:1;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
 /* "Live" badge — distinguishes the few tappable, data-backed buildings from scenery. */
 .live{position:absolute;top:5px;right:7px;display:inline-flex;align-items:center;gap:3px;
