@@ -69,7 +69,7 @@ const PLACEMENT: Record<
   // SHORT (not a full-height tower). Its short name is stacked upright down the slab and
   // the count ring caps the top as a live beacon.
   "science-eng": {
-    hero: { left: "2.5%", top: "3%", width: "12%", height: "30%" },
+    hero: { left: "2.5%", top: "3%", width: "12%", height: "22%" },
     ring: { left: "8.5%", top: "6.5%" },
     motif: "tower",
     tall: true,
