@@ -62,7 +62,7 @@
 .nm{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--ink)}
 /* NoCo (Northwest Corner Building): a thin, SHORT vertical slab in the top-left, with a faint
    glass-pane facade; the ring caps the top as a beacon and the name sits just below it. */
-.science-eng{border-radius:5px;justify-content:flex-end;overflow:visible;
+.science-eng{border-radius:5px;justify-content:center;overflow:visible;
   background:
     repeating-linear-gradient(90deg,transparent 0 4px,rgba(44,74,110,.11) 4px 5px),
     linear-gradient(160deg,#fbf7ec,#f0e7d1)}
