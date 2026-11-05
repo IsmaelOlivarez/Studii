@@ -21,8 +21,9 @@ export function DateChips({
     <div className={`${styles.dates} ${compact ? styles.compact : ""}`}>
       {dateKeys.map((iso, i) => {
         const d = parseISO(iso);
-        // Label by the REAL date, not chip position — so "Today"/"Tom" can't mislabel.
-        const lbl = iso === ymd(0) ? "Today" : iso === ymd(1) ? "Tom" : d.toLocaleDateString("en", { weekday: "short" });
+        // Label by the REAL date, not chip position — so "Today" can't mislabel. Every
+        // other chip (incl. tomorrow) shows its weekday abbreviation (Fri, Sat, …).
+        const lbl = iso === ymd(0) ? "Today" : d.toLocaleDateString("en", { weekday: "short" });
         return (
           <button
             key={iso}

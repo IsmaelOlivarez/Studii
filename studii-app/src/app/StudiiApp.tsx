@@ -136,10 +136,10 @@ export function StudiiApp() {
   const day = snapshot.days[dayKey]?.rooms ?? [];
   const f = fmtTime(selMin);
   const selTimeLabel = `${f.str} ${f.mer}`;
-  // Date labels keyed to the REAL date, not chip position, so "Today"/"Tomorrow" can
-  // never mislabel a shifted window.
+  // Date labels keyed to the REAL date, not chip position, so "Today" can never mislabel a
+  // shifted window. Every other day (incl. tomorrow) reads as its weekday name (Friday, …).
   const dateLabel =
-    dayKey === ymd(0) ? "today" : dayKey === ymd(1) ? "tomorrow"
+    dayKey === ymd(0) ? "today"
     : parseISO(dayKey).toLocaleDateString("en", { weekday: "long" });
   const isToday = dayKey === ymd(0);
 
