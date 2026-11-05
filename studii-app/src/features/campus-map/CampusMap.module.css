@@ -60,9 +60,15 @@
 .tower i{width:3px;background:var(--accent);opacity:.5;border-radius:1px}
 .tower i:nth-child(1){height:8px}.tower i:nth-child(2){height:13px}.tower i:nth-child(3){height:10px}
 .nm{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--ink)}
-/* NoCo (Northwest Corner Building): a short, horizontal bar in the top-left. The count ring
-   sits at the LEFT (vertically centered); the name runs the long way to its right. */
-.science-eng{flex-direction:row;align-items:center;justify-content:flex-end;padding-right:11%;border-radius:8px}
+/* NoCo (Northwest Corner Building): a thin, SHORT vertical slab in the top-left, with a faint
+   glass-pane facade; the ring caps the top as a beacon and the name sits just below it. */
+.science-eng{border-radius:5px;justify-content:flex-end;overflow:visible;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 4px,rgba(44,74,110,.11) 4px 5px),
+    linear-gradient(160deg,#fbf7ec,#f0e7d1)}
+/* Short name stacked UPRIGHT down the slab — each letter its own line, facing the viewer. */
+.nmV{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:9px;
+  font-family:var(--font-display);font-weight:600;font-size:12px;line-height:1.05;color:var(--ink)}
 .sub{font-family:var(--font-mono);font-weight:600;font-size:7px;line-height:1;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
 /* "Live" badge — distinguishes the few tappable, data-backed buildings from scenery. */
 .live{position:absolute;top:5px;right:7px;display:inline-flex;align-items:center;gap:3px;
