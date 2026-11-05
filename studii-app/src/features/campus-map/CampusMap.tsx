@@ -72,6 +72,52 @@ const PLACEMENT: Record<
   },
 };
 
+// Decorative campus buildings at their REAL Morningside positions, traced from Columbia's
+// own campus map (top = W 120th St, bottom = W 114th; College Walk / 116th splits the
+// block ~63% down — the north half is 4 blocks to the south's 2). These are quiet scenery
+// (labels are transparent; see .cb) so the central mall — Low → College Walk → South Field
+// → Butler — and the three live library heroes carry the meaning. v = vertical footprint,
+// lt = lighter stone (used for the slab-like edge/plaza buildings).
+type Scenery = { l: number; t: number; w: number; h: number; v?: boolean; lt?: boolean; name: string };
+const SCENERY: Scenery[] = [
+  // ── NORTH, west edge (Broadway side), N→S — NoCo hero owns the top-left corner ──
+  { l: 1.5, t: 17, w: 6.5, h: 11, v: true, lt: true, name: "Chandler" },
+  { l: 1.5, t: 29, w: 9, h: 9, name: "Havemeyer" },
+  { l: 1.5, t: 40, w: 6.5, h: 10, v: true, lt: true, name: "Mathematics" },
+  { l: 1.5, t: 51, w: 6.5, h: 10, v: true, lt: true, name: "Lewisohn" },
+  { l: 16, t: 58, w: 15, h: 5, name: "Dodge" },
+  // ── NORTH, top row along 120th St ──
+  { l: 12, t: 2, w: 15, h: 7, name: "Pupin" },
+  { l: 12, t: 10.5, w: 20, h: 8, lt: true, name: "Dodge Fitness" },
+  { l: 40, t: 2, w: 16, h: 8, name: "Schapiro" },
+  { l: 60, t: 2, w: 15, h: 7, name: "Mudd" },
+  { l: 82, t: 8, w: 11.5, h: 8, name: "Computer Science" },
+  // ── NORTH, center (University Hall over Uris; Low octagon drawn separately) ──
+  { l: 41, t: 16, w: 18, h: 7, lt: true, name: "University Hall" },
+  { l: 32, t: 28, w: 7, h: 10, v: true, name: "Computer Center" },
+  { l: 29, t: 48, w: 10, h: 7, name: "Earl" },
+  // ── NORTH, east side ──
+  { l: 68, t: 11, w: 7, h: 12, v: true, name: "Fairchild" },
+  { l: 87, t: 19, w: 6, h: 11, v: true, lt: true, name: "Schermerhorn Ext" },
+  { l: 75, t: 31, w: 16, h: 8, name: "Schermerhorn" },
+  { l: 68, t: 43, w: 9, h: 8, name: "Avery" },
+  { l: 88, t: 42, w: 6, h: 11, v: true, name: "Fayerweather" },
+  { l: 76, t: 53, w: 10, h: 8, name: "St Paul's Chapel" },
+  { l: 90, t: 52, w: 6, h: 11, v: true, lt: true, name: "Philosophy" },
+  { l: 70, t: 59, w: 8, h: 5, name: "Buell" },
+  { l: 79, t: 60, w: 15, h: 5, name: "Kent" },
+  // ── SOUTH, west column ──
+  { l: 12, t: 68, w: 16, h: 8, name: "Pulitzer" },
+  { l: 12, t: 78, w: 7, h: 13, v: true, lt: true, name: "Furnald" },
+  { l: 1.5, t: 86, w: 18, h: 6, name: "Lerner Hall" },
+  { l: 1.5, t: 93, w: 18, h: 6, name: "Carman" },
+  // ── SOUTH, east column ──
+  { l: 73, t: 67.5, w: 16, h: 7, name: "Hamilton" },
+  { l: 89, t: 75, w: 6, h: 11, v: true, lt: true, name: "Hartley" },
+  { l: 89, t: 87, w: 6, h: 11, v: true, lt: true, name: "Wallach" },
+  { l: 72, t: 88, w: 18, h: 10, name: "John Jay" },
+];
+
 export function CampusMap({
   libs,
   onEnter,
@@ -115,60 +161,32 @@ export function CampusMap({
       </div>
 
       <div className={`${B.mapWrap} anim d3`}>
-        <div className={`${B.zone} ${B.north}`} />
-        <div className={`${B.zone} ${B.south}`} />
+        {/* The central MALL — Columbia's signature axis. Low's plaza (north) flows down
+            the Low Steps, across College Walk, into the South Field lawns, with Butler
+            anchoring the south end facing Low. Everything else frames this spine. */}
+        <div className={B.mallLow} />
+        <div className={B.lowSteps} />
         <div className={B.walk}><span>College Walk</span></div>
+        <div className={B.southField} />
 
-        {/* NORTH — edge verticals (mirrored L/R). The NW Corner block that used to sit
-            at top-left is now the live NoCo hero (Northwest Corner Building). */}
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "16.5%", width: "6%", height: "12%" }}>Chandler</div>
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "31%", width: "6%", height: "12%" }}>Math</div>
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "45%", width: "6%", height: "10%" }}>Lewisohn</div>
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "2%", width: "6%", height: "13%" }}>Comp Sci</div>
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "16.5%", width: "6%", height: "12%" }}>Fairchild</div>
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "31%", width: "6%", height: "12%" }}>Fayer</div>
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "45%", width: "6%", height: "10%" }}>Philo</div>
+        {/* Decorative buildings at their real positions (hushed scenery). */}
+        {SCENERY.map((b) => (
+          <div
+            key={b.name}
+            className={`${B.cb} ${b.v ? B.v : ""} ${b.lt ? B.lt : ""}`}
+            style={{ left: `${b.l}%`, top: `${b.t}%`, width: `${b.w}%`, height: `${b.h}%` }}
+          >
+            {b.name}
+          </div>
+        ))}
 
-        {/* NORTH — top row (Pupin | Schapiro | Mudd) */}
-        <div className={B.cb} style={{ left: "11%", top: "1.5%", width: "18%", height: "6.5%" }}>Pupin</div>
-        <div className={B.cb} style={{ left: "39%", top: "1.5%", width: "22%", height: "9%" }}>Schapiro</div>
-        <div className={B.cb} style={{ left: "71%", top: "1.5%", width: "18%", height: "6.5%" }}>Mudd</div>
+        {/* Low Memorial Library — the domed octagon on its steps, dead center-north.
+            The landmark that makes the map read as Columbia (decorative, not a hero). */}
+        <div className={B.low} style={{ left: "39%", top: "42%", width: "22%", height: "15%" }}>
+          <div className={B.lowDome} />
+        </div>
 
-        {/* NORTH — University Hall (Uris sits just below it, as a live hero) */}
-        <div className={`${B.cb} ${B.lt}`} style={{ left: "38%", top: "11%", width: "24%", height: "8%" }}>University Hall</div>
-
-        {/* NORTH — Havemeyer | · | Schermerhorn (mirrored) */}
-        <div className={B.cb} style={{ left: "11%", top: "19%", width: "16%", height: "11%" }}>Havemeyer</div>
-        <div className={B.cb} style={{ left: "73%", top: "19%", width: "16%", height: "11%" }}>Schermerhorn</div>
-
-        {/* NORTH — Low Library + Earl | Avery (mirrored, between Math/Lewisohn level) */}
-        <div className={B.cb} style={{ left: "11%", top: "39.5%", width: "12%", height: "6%" }}>Earl</div>
-        <div className={B.cb} style={{ left: "35%", top: "40%", width: "30%", height: "14%", fontSize: "11px", fontWeight: 800 }}>Low Library</div>
-        <div className={B.cb} style={{ left: "73%", top: "34%", width: "10%", height: "10%" }}>Avery<span className={B.so}>soon</span></div>
-
-        {/* NORTH — Dodge | Kent (mirrored) */}
-        <div className={B.cb} style={{ left: "11%", top: "50%", width: "18%", height: "5%" }}>Dodge</div>
-        <div className={B.cb} style={{ left: "71%", top: "50%", width: "18%", height: "5%" }}>Kent</div>
-
-        {/* SOUTH — Pulitzer | Hamilton (mirrored) */}
-        <div className={B.cb} style={{ left: "11%", top: "64%", width: "18%", height: "6.5%" }}>Pulitzer</div>
-        <div className={B.cb} style={{ left: "71%", top: "64%", width: "18%", height: "6.5%" }}>Hamilton</div>
-
-        {/* SOUTH — Furnald | Hartley (mirrored edge verticals) */}
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "72%", width: "6%", height: "13%" }}>Furnald</div>
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "72%", width: "6%", height: "13%" }}>Hartley</div>
-
-        {/* SOUTH — lawns + sundial */}
-        <div className={B.lawn} style={{ left: "29%", top: "73%", width: "18%" }}>South Field<br />West</div>
-        <div className={B.lawn} style={{ left: "53%", top: "73%", width: "18%" }}>South Field<br />East</div>
-        <div className={B.sundial}><span>Sundial</span></div>
-
-        {/* SOUTH — bottom row: Lerner/Carman | Butler | John Jay (mirrored, hug borders) */}
-        <div className={B.cb} style={{ left: "1.5%", top: "86%", width: "20%", height: "6%" }}>Lerner Hall</div>
-        <div className={B.cb} style={{ left: "1.5%", top: "92.5%", width: "20%", height: "6%" }}>Carman</div>
-        <div className={B.cb} style={{ left: "78.5%", top: "86%", width: "20%", height: "12.5%" }}>John Jay</div>
-
-        {/* Live library heroes (Butler + Uris): each with its own availability ring. */}
+        {/* Live library heroes (Butler + Uris + NoCo): each with its own availability ring. */}
         {libs.map(({ library, free, total, closed }) => {
           const place = PLACEMENT[library.slug];
           if (!place) return null;
