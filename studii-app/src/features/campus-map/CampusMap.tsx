@@ -70,7 +70,7 @@ const PLACEMENT: Record<
   // the count ring caps the top as a live beacon.
   "science-eng": {
     hero: { left: "2.5%", top: "3%", width: "12%", height: "22%" },
-    ring: { left: "19.5%", top: "14%" }, // against the right wall, vertically centered
+    ring: { left: "17.5%", top: "14%" }, // just right of the slab, vertically centered
     motif: "tower",
     tall: true,
   },

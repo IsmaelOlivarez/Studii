@@ -67,8 +67,8 @@
     repeating-linear-gradient(90deg,transparent 0 4px,rgba(44,74,110,.11) 4px 5px),
     linear-gradient(160deg,#fbf7ec,#f0e7d1)}
 /* Short name stacked UPRIGHT down the slab — each letter its own line, facing the viewer. */
-.nmV{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:7px;
-  font-family:var(--font-display);font-weight:600;font-size:11px;line-height:1.02;color:var(--ink)}
+.nmV{display:flex;flex-direction:column;align-items:center;gap:0;
+  font-family:var(--font-display);font-weight:600;font-size:15px;line-height:1.04;color:var(--ink)}
 .sub{font-family:var(--font-mono);font-weight:600;font-size:7px;line-height:1;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
 /* "Live" badge — distinguishes the few tappable, data-backed buildings from scenery. */
 .live{position:absolute;top:5px;right:7px;display:inline-flex;align-items:center;gap:3px;
