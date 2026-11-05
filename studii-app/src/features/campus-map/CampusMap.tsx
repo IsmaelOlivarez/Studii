@@ -48,10 +48,12 @@ function statusOf(free: number, total: number): { cls: string; color: string; wo
 
 // Hand-placed positions for each clickable library on the bespoke Morningside map.
 // Butler is the hero at the bottom; Uris sits on the north spine (its real-ish
-// location) with a dome motif echoing its round reading room.
+// location) with a dome motif echoing its round reading room; NoCo (Science & Eng /
+// Northwest Corner Building) is the hero in the top-left corner — its real spot on
+// campus — with a glass-tower motif echoing the modern NWC building.
 const PLACEMENT: Record<
   string,
-  { hero: React.CSSProperties; ring: React.CSSProperties; motif: "pillars" | "dome" }
+  { hero: React.CSSProperties; ring: React.CSSProperties; motif: "pillars" | "dome" | "tower" }
 > = {
   butler: {
     hero: { left: "28%", top: "85%", width: "44%", height: "14%" },
@@ -62,6 +64,11 @@ const PLACEMENT: Record<
     hero: { left: "34%", top: "24%", width: "32%", height: "13%" },
     ring: { left: "50%", top: "24.5%" },
     motif: "dome",
+  },
+  "science-eng": {
+    hero: { left: "2.5%", top: "3%", width: "35%", height: "15%" },
+    ring: { left: "20%", top: "6.5%" },
+    motif: "tower",
   },
 };
 
@@ -112,8 +119,8 @@ export function CampusMap({
         <div className={`${B.zone} ${B.south}`} />
         <div className={B.walk}><span>College Walk</span></div>
 
-        {/* NORTH — edge verticals (mirrored L/R) */}
-        <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "2%", width: "6%", height: "13%" }}>NW Corner</div>
+        {/* NORTH — edge verticals (mirrored L/R). The NW Corner block that used to sit
+            at top-left is now the live NoCo hero (Northwest Corner Building). */}
         <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "16.5%", width: "6%", height: "12%" }}>Chandler</div>
         <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "31%", width: "6%", height: "12%" }}>Math</div>
         <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "45%", width: "6%", height: "10%" }}>Lewisohn</div>
@@ -193,10 +200,15 @@ export function CampusMap({
                 <span className={B.live}><i />Live</span>
                 {place.motif === "pillars" ? (
                   <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
-                ) : (
+                ) : place.motif === "dome" ? (
                   <div className={B.dome} />
+                ) : (
+                  <div className={B.tower}><i /><i /><i /></div>
                 )}
-                <div className={B.nm}>{library.name}</div>
+                {/* The hero tile is small; a long name ("Science & Engineering
+                    Library") won't fit, so NoCo shows its short name here. The full
+                    name still appears on the summary card below. */}
+                <div className={B.nm}>{library.name.length > 16 ? library.shortName : library.name}</div>
               </button>
             </Fragment>
           );

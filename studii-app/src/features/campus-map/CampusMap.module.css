@@ -55,6 +55,12 @@
 /* dome motif for Uris (semicircle over a baseline) */
 .dome{width:20px;height:10px;margin-bottom:2px;border-radius:10px 10px 0 0;
   background:var(--accent);opacity:.5;box-shadow:0 2px 0 -1px var(--accent)}
+/* glass-tower motif for NoCo — three stepped panes echoing the modern NWC building */
+.tower{display:flex;align-items:flex-end;gap:2.5px;margin-bottom:1px}
+.tower i{width:3px;background:var(--accent);opacity:.5;border-radius:1px}
+.tower i:nth-child(1){height:8px}.tower i:nth-child(2){height:13px}.tower i:nth-child(3){height:10px}
+/* NoCo: square-ish glassy shell distinct from Butler/Uris */
+.science-eng{border-radius:10px}
 .nm{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--ink)}
 .sub{font-family:var(--font-mono);font-weight:600;font-size:7px;line-height:1;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
 /* "Live" badge — distinguishes the few tappable, data-backed buildings from scenery. */

@@ -48,6 +48,24 @@ export const URIS: Library = {
   ],
 };
 
+// Science & Engineering Library — the Northwest Corner Building ("NoCo" to students).
+// The smallest set of the three: just TWO bookable group-study rooms, 605 & 606, both
+// capacity 8, on Floor 6 (verified live 2026-11-05). One LibCal group — gid=30398
+// "Study Rooms" — and a `gid=0` grid for this building returns exactly these two spaces,
+// which `normalizeGrid` keeps via the spaceId filter. spaceIds are sequential (116923,
+// 116924), so `spaceId = 116923 + index`. Hours derive per-day from the grid, as usual.
+export const SCIENCE_ENG: Library = {
+  slug: "science-eng",
+  name: "Science & Engineering Library",
+  shortName: "NoCo",
+  lid: 14595,
+  floorLabel: "Floor 6 — Group Study",
+  rooms: [
+    { id: "605", cap: 8, spaceId: 116923 },
+    { id: "606", cap: 8, spaceId: 116924 },
+  ],
+};
+
 // Other CU library location ids — reference for future expansion (not yet in scope).
 export const LIBRARY_LIDS = {
   butler: 14585,
@@ -57,7 +75,7 @@ export const LIBRARY_LIDS = {
   socialWork: 14878,
 } as const;
 
-export const LIBRARIES: Library[] = [BUTLER, URIS];
+export const LIBRARIES: Library[] = [BUTLER, URIS, SCIENCE_ENG];
 
 export const getLibrary = (slug: string): Library | undefined =>
   LIBRARIES.find((l) => l.slug === slug);

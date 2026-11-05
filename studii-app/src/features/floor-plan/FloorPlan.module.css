@@ -44,6 +44,12 @@
 .closed{background:var(--paper-2);border-color:var(--line);opacity:.7}
 .closed .rn{color:var(--ink-faint)}.closed .rd{background:var(--ink-faint)}
 
+/* ── Science & Eng (NoCo): two study rooms over an open commons, glass wall north ── */
+.sciGlass{left:9%;top:12px;width:82%;height:8%;background:linear-gradient(#dfeef1,#cfe3e8);
+  box-shadow:inset 0 0 0 1px rgba(var(--shadow),.1);color:var(--ink-faint);
+  font-family:var(--font-mono);font-weight:600;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.sciCommons{left:9%;top:63%;width:82%;height:18%}
+
 .r403A{right:12px;top:7%;width:24%;height:17%}
 .r404{right:12px;top:27%;width:24%;height:17%}
 .r405{right:12px;top:47%;width:24%;height:17%}

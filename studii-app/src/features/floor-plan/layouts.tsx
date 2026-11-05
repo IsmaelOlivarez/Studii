@@ -109,6 +109,30 @@ const uris: FloorLayout = {
   },
 };
 
-const LAYOUTS: Record<string, FloorLayout> = { butler, uris };
+// Science & Engineering (NoCo / Northwest Corner Building): the smallest plan — just
+// two group rooms (605, 606) on Floor 6. A clean two-tile layout, side by side along the
+// building's glass wall, over an open study commons. Hand-placed (only two rooms, so no
+// need to compute). Both seat 8 → noted in the legend rather than per-tile.
+const scienceEng: FloorLayout = {
+  floorClass: "",
+  note: "floor 6 · both seat 8",
+  shell: (
+    <>
+      <div className={`${styles.nonb} ${styles.sciGlass}`}>Broadway Glass Wall</div>
+      <div className={`${styles.nonb} ${styles.sciCommons}`}>Open Study Commons</div>
+      <div className={`${styles.nonb} ${styles.entry}`}>▽ Elevators · Floor 6</div>
+    </>
+  ),
+  roomProps: (_room, index) => ({
+    style: {
+      left: index === 0 ? "9%" : "54%",
+      top: "17%",
+      width: "37%",
+      height: "40%",
+    },
+  }),
+};
+
+const LAYOUTS: Record<string, FloorLayout> = { butler, uris, "science-eng": scienceEng };
 
 export const getFloorLayout = (slug: string): FloorLayout => LAYOUTS[slug] ?? butler;
