@@ -24,7 +24,7 @@
 .arrow svg{width:12px;height:48px}
 
 /* page dots — which campus you're on (the active one stretches into a pill) */
-.dots{display:flex;gap:7px;justify-content:center;align-items:center;margin:0 0 16px}
+.dots{display:flex;gap:7px;justify-content:center;align-items:center;margin:7px 0 4px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);opacity:.4;
   border:none;padding:0;cursor:pointer;transition:width .25s,opacity .25s,background .25s}
 .dotOn{width:18px;border-radius:3px;opacity:1;background:var(--accent)}

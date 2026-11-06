@@ -118,6 +118,199 @@ export function CampusMap({
     else if (dx >= TH) go(idx - 1);
     startX.current = null;
   };
+  const shift = { transform: `translateX(${-idx * 100}%)` }; // both tracks move together
+
+  // ── The three map scenes (Barnard · Morningside · East Campus) ──────────────
+  // Barnard: a narrow campus wrapping its central lawn (Futter Field); scenery only.
+  const barnardMap = (
+    <div className={B.mapWrap}>
+      <div className={`${B.zone} ${B.north}`} style={{ height: "100%" }} />
+      <div className={B.zone} style={{ left: "32%", top: "30%", width: "36%", height: "34%", borderRadius: "8px" }} />
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "6%", width: "7%", height: "18%" }}>Milbank</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "27%", width: "7%", height: "16%" }}>Barnard Hall</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "46%", width: "7%", height: "16%" }}>Altschul</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "65%", width: "7%", height: "18%" }}>LeFrak</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "8%", width: "7%", height: "20%" }}>Sulzberger</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "31%", width: "7%", height: "18%" }}>Brooks</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "52%", width: "7%", height: "18%" }}>Hewitt</div>
+      <div className={B.cb} style={{ left: "24%", top: "4%", width: "30%", height: "9%" }}>Milstein Center</div>
+      <div className={B.cb} style={{ left: "58%", top: "4%", width: "22%", height: "9%" }}>Diana Center</div>
+      <div className={B.cb} style={{ left: "26%", top: "84%", width: "26%", height: "12%" }}>Lehman Hall</div>
+      <div className={B.cb} style={{ left: "56%", top: "84%", width: "24%", height: "12%" }}>Elliott Hall</div>
+    </div>
+  );
+
+  // Morningside: the live campus — mirrored scenery plus the tappable library heroes.
+  const morningsideMap = (
+    <div className={B.mapWrap}>
+      <div className={`${B.zone} ${B.north}`} />
+      <div className={`${B.zone} ${B.south}`} />
+      <div className={B.walk}><span>College Walk</span></div>
+
+      {/* NORTH — edge verticals (mirrored L/R). The NW Corner block that used to sit
+          at top-left is now the live NoCo hero (Northwest Corner Building). */}
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "16.5%", width: "6%", height: "12%" }}>Chandler</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "31%", width: "6%", height: "12%" }}>Math</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "45%", width: "6%", height: "10%" }}>Lewisohn</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "2%", width: "6%", height: "13%" }}>Comp Sci</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "16.5%", width: "6%", height: "12%" }}>Fairchild</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "31%", width: "6%", height: "12%" }}>Fayer</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "45%", width: "6%", height: "10%" }}>Philo</div>
+
+      {/* NORTH — top row (Pupin | Schapiro | Mudd) */}
+      <div className={B.cb} style={{ left: "11%", top: "1.5%", width: "18%", height: "6.5%" }}>Pupin</div>
+      <div className={B.cb} style={{ left: "39%", top: "1.5%", width: "22%", height: "9%" }}>Schapiro</div>
+      <div className={B.cb} style={{ left: "71%", top: "1.5%", width: "18%", height: "6.5%" }}>Mudd</div>
+
+      {/* NORTH — University Hall (Uris sits just below it, as a live hero) */}
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "38%", top: "11%", width: "24%", height: "8%" }}>University Hall</div>
+
+      {/* NORTH — Havemeyer | · | Schermerhorn (mirrored) */}
+      <div className={B.cb} style={{ left: "11%", top: "19%", width: "16%", height: "11%" }}>Havemeyer</div>
+      <div className={B.cb} style={{ left: "73%", top: "19%", width: "16%", height: "11%" }}>Schermerhorn</div>
+
+      {/* NORTH — Low Library + Earl | Avery (mirrored, between Math/Lewisohn level) */}
+      <div className={B.cb} style={{ left: "11%", top: "39.5%", width: "12%", height: "6%" }}>Earl</div>
+      <div className={B.cb} style={{ left: "35%", top: "40%", width: "30%", height: "14%", fontSize: "11px", fontWeight: 800 }}>Low Library</div>
+      <div className={B.cb} style={{ left: "73%", top: "34%", width: "10%", height: "10%" }}>Avery<span className={B.so}>soon</span></div>
+
+      {/* NORTH — Dodge | Kent (mirrored) */}
+      <div className={B.cb} style={{ left: "11%", top: "50%", width: "18%", height: "5%" }}>Dodge</div>
+      <div className={B.cb} style={{ left: "71%", top: "50%", width: "18%", height: "5%" }}>Kent</div>
+
+      {/* SOUTH — Pulitzer | Hamilton (mirrored) */}
+      <div className={B.cb} style={{ left: "11%", top: "64%", width: "18%", height: "6.5%" }}>Pulitzer</div>
+      <div className={B.cb} style={{ left: "71%", top: "64%", width: "18%", height: "6.5%" }}>Hamilton</div>
+
+      {/* SOUTH — Furnald | Hartley (mirrored edge verticals) */}
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "72%", width: "6%", height: "13%" }}>Furnald</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "72%", width: "6%", height: "13%" }}>Hartley</div>
+
+      {/* SOUTH — lawns + sundial */}
+      <div className={B.lawn} style={{ left: "29%", top: "73%", width: "18%" }}>South Field<br />West</div>
+      <div className={B.lawn} style={{ left: "53%", top: "73%", width: "18%" }}>South Field<br />East</div>
+      <div className={B.sundial}><span>Sundial</span></div>
+
+      {/* SOUTH — bottom row: Lerner/Carman | Butler | John Jay (mirrored, hug borders) */}
+      <div className={B.cb} style={{ left: "1.5%", top: "86%", width: "20%", height: "6%" }}>Lerner Hall</div>
+      <div className={B.cb} style={{ left: "1.5%", top: "92.5%", width: "20%", height: "6%" }}>Carman</div>
+      <div className={B.cb} style={{ left: "78.5%", top: "86%", width: "20%", height: "12.5%" }}>John Jay</div>
+
+      {/* Live library heroes (Butler + Uris + NoCo): each with its own availability ring. */}
+      {libs.map(({ library, free, total, closed }) => {
+        const place = PLACEMENT[library.slug];
+        if (!place) return null;
+        const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
+        return (
+          <Fragment key={library.slug}>
+            {/* The count ring is now a tap target too (not just the hero card). */}
+            <button
+              className={`${B.ring} ${closed ? B.ringClosed : ""}`}
+              style={{
+                "--ring-color": color,
+                left: place.ring.left,
+                top: place.ring.top,
+                boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
+              } as React.CSSProperties}
+              onClick={() => onEnter(library)}
+              aria-label={`Open ${library.name} — ${closed ? "closed" : `${free} of ${total} open`}`}
+            >
+              <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
+            </button>
+            <button
+              className={`${B.hero} ${B[library.slug]}`}
+              style={place.hero}
+              onClick={() => onEnter(library)}
+              aria-label={`Open ${library.name}`}
+            >
+              {place.tall ? (
+                // NoCo slab: the short name stacked UPRIGHT, each letter facing the
+                // viewer; the pulsing ring that caps the top is the live cue.
+                <span className={B.nmV}>
+                  {library.shortName.split("").map((ch, i) => (
+                    <span key={i}>{ch}</span>
+                  ))}
+                </span>
+              ) : (
+                <>
+                  {/* Marks this as one of the few LIVE, tappable buildings among the
+                      decorative campus — the rest are static scenery. */}
+                  <span className={B.live}><i />Live</span>
+                  {place.motif === "pillars" ? (
+                    <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
+                  ) : place.motif === "dome" ? (
+                    <div className={B.dome} />
+                  ) : (
+                    <div className={B.tower}><i /><i /><i /></div>
+                  )}
+                  {/* A long name won't fit the small tile, so a library shows its short
+                      name when the full one is long. */}
+                  <div className={B.nm}>{library.name.length > 16 ? library.shortName : library.name}</div>
+                </>
+              )}
+            </button>
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+
+  // East Campus: the cluster east of Amsterdam ringing Revson Plaza; scenery only.
+  const eastMap = (
+    <div className={B.mapWrap}>
+      <div className={`${B.zone} ${B.north}`} style={{ height: "100%" }} />
+      <div className={B.zone} style={{ left: "30%", top: "34%", width: "40%", height: "30%", borderRadius: "8px" }} />
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "10%", width: "8%", height: "46%" }}>SIPA</div>
+      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "90%", top: "8%", width: "8%", height: "52%" }}>East Campus</div>
+      <div className={B.cb} style={{ left: "15%", top: "4%", width: "22%", height: "10%" }}>Kent Hall</div>
+      <div className={B.cb} style={{ left: "41%", top: "4%", width: "18%", height: "8%" }}>Buell</div>
+      <div className={B.cb} style={{ left: "63%", top: "4%", width: "22%", height: "10%" }}>Casa Italiana</div>
+      <div className={B.cb} style={{ left: "15%", top: "40%", width: "12%", height: "18%" }}>Deutsches Haus</div>
+      <div className={B.cb} style={{ left: "73%", top: "40%", width: "12%", height: "18%" }}>Wien Hall</div>
+      <div className={B.cb} style={{ left: "22%", top: "80%", width: "40%", height: "16%", fontSize: "11px", fontWeight: 800 }}>Jerome Greene Hall</div>
+      <div className={B.cb} style={{ left: "66%", top: "80%", width: "20%", height: "16%" }}>Greene Annex</div>
+    </div>
+  );
+
+  const maps = [barnardMap, morningsideMap, eastMap];
+
+  // ── The cards beneath each map: live summaries for Morningside, a quiet empty
+  //    line for the two scenery-only campuses. These slide in lockstep with the maps.
+  const emptyCards = <p className={B.emptyCards}>No live libraries here yet</p>;
+  const morningsideCards = (
+    <>
+      {libs.map(({ library, free, total, closed, opensLabel, nextFreeLabel }) => {
+        const { cls, color, word } = statusOf(free, total);
+        const statusColor = closed ? "var(--ink-soft)" : color;
+        // When nothing's bookable now, lead with the answer to "so when CAN I?" — the
+        // soonest a room opens up. Closed libraries already say when they reopen.
+        const tail = closed
+          ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}`
+          : free === 0
+            ? nextFreeLabel
+              ? `Full ${whenLabel} · next free ${nextFreeLabel}`
+              : `Fully booked ${whenLabel}`
+            : `${word} ${whenLabel}`;
+        return (
+          <button key={library.slug} className={B.sumcard} onClick={() => onEnter(library)}>
+            <div className={B.stat} style={{ background: closed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
+              <b style={{ color: statusColor }}>{closed ? "✕" : free}</b><em>OF {total}</em>
+            </div>
+            <div className={B.meta}>
+              <h3>{library.name}</h3>
+              <p>
+                <span style={{ color: statusColor, fontWeight: 700 }}>{tail}</span>
+              </p>
+            </div>
+            <div className={B.arrowcard}>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </div>
+          </button>
+        );
+      })}
+    </>
+  );
+  const cards = [emptyCards, morningsideCards, emptyCards];
 
   return (
     <>
@@ -150,237 +343,52 @@ export function CampusMap({
         />
       </div>
 
-      {/* Swipeable carousel: three panels (map + its cards) slide as one. */}
-      <div className={`${B.carousel} anim d3`}>
-        <div className={B.viewport} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <div className={B.track} style={{ transform: `translateX(${-idx * 100}%)` }}>
-            {/* ───────────────── BARNARD (left) — scenery only ───────────────── */}
-            <section className={B.panel} aria-hidden={idx !== 0}>
-              <div className={B.mapWrap}>
-                <div className={`${B.zone} ${B.north}`} style={{ height: "100%" }} />
-                {/* Futter Field — the central lawn Barnard's quad wraps around. */}
-                <div className={B.zone} style={{ left: "32%", top: "30%", width: "36%", height: "34%", borderRadius: "8px" }} />
-                {/* West edge, Broadway side (top → bottom) */}
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "6%", width: "7%", height: "18%" }}>Milbank</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "27%", width: "7%", height: "16%" }}>Barnard Hall</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "46%", width: "7%", height: "16%" }}>Altschul</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "65%", width: "7%", height: "18%" }}>LeFrak</div>
-                {/* East edge, Claremont side */}
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "8%", width: "7%", height: "20%" }}>Sulzberger</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "31%", width: "7%", height: "18%" }}>Brooks</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "52%", width: "7%", height: "18%" }}>Hewitt</div>
-                {/* Top & bottom anchors */}
-                <div className={B.cb} style={{ left: "24%", top: "4%", width: "30%", height: "9%" }}>Milstein Center</div>
-                <div className={B.cb} style={{ left: "58%", top: "4%", width: "22%", height: "9%" }}>Diana Center</div>
-                <div className={B.cb} style={{ left: "26%", top: "84%", width: "26%", height: "12%" }}>Lehman Hall</div>
-                <div className={B.cb} style={{ left: "56%", top: "84%", width: "24%", height: "12%" }}>Elliott Hall</div>
-              </div>
-              <div className={B.cards}>
-                <p className={B.emptyCards}>No live libraries here yet</p>
-              </div>
-            </section>
-
-            {/* ──────────── MORNINGSIDE (center) — the live campus ──────────── */}
-            <section className={B.panel} aria-hidden={idx !== 1}>
-              <div className={B.mapWrap}>
-                <div className={`${B.zone} ${B.north}`} />
-                <div className={`${B.zone} ${B.south}`} />
-                <div className={B.walk}><span>College Walk</span></div>
-
-                {/* NORTH — edge verticals (mirrored L/R). The NW Corner block that used to sit
-                    at top-left is now the live NoCo hero (Northwest Corner Building). */}
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "16.5%", width: "6%", height: "12%" }}>Chandler</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "31%", width: "6%", height: "12%" }}>Math</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "45%", width: "6%", height: "10%" }}>Lewisohn</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "2%", width: "6%", height: "13%" }}>Comp Sci</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "16.5%", width: "6%", height: "12%" }}>Fairchild</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "31%", width: "6%", height: "12%" }}>Fayer</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "45%", width: "6%", height: "10%" }}>Philo</div>
-
-                {/* NORTH — top row (Pupin | Schapiro | Mudd) */}
-                <div className={B.cb} style={{ left: "11%", top: "1.5%", width: "18%", height: "6.5%" }}>Pupin</div>
-                <div className={B.cb} style={{ left: "39%", top: "1.5%", width: "22%", height: "9%" }}>Schapiro</div>
-                <div className={B.cb} style={{ left: "71%", top: "1.5%", width: "18%", height: "6.5%" }}>Mudd</div>
-
-                {/* NORTH — University Hall (Uris sits just below it, as a live hero) */}
-                <div className={`${B.cb} ${B.lt}`} style={{ left: "38%", top: "11%", width: "24%", height: "8%" }}>University Hall</div>
-
-                {/* NORTH — Havemeyer | · | Schermerhorn (mirrored) */}
-                <div className={B.cb} style={{ left: "11%", top: "19%", width: "16%", height: "11%" }}>Havemeyer</div>
-                <div className={B.cb} style={{ left: "73%", top: "19%", width: "16%", height: "11%" }}>Schermerhorn</div>
-
-                {/* NORTH — Low Library + Earl | Avery (mirrored, between Math/Lewisohn level) */}
-                <div className={B.cb} style={{ left: "11%", top: "39.5%", width: "12%", height: "6%" }}>Earl</div>
-                <div className={B.cb} style={{ left: "35%", top: "40%", width: "30%", height: "14%", fontSize: "11px", fontWeight: 800 }}>Low Library</div>
-                <div className={B.cb} style={{ left: "73%", top: "34%", width: "10%", height: "10%" }}>Avery<span className={B.so}>soon</span></div>
-
-                {/* NORTH — Dodge | Kent (mirrored) */}
-                <div className={B.cb} style={{ left: "11%", top: "50%", width: "18%", height: "5%" }}>Dodge</div>
-                <div className={B.cb} style={{ left: "71%", top: "50%", width: "18%", height: "5%" }}>Kent</div>
-
-                {/* SOUTH — Pulitzer | Hamilton (mirrored) */}
-                <div className={B.cb} style={{ left: "11%", top: "64%", width: "18%", height: "6.5%" }}>Pulitzer</div>
-                <div className={B.cb} style={{ left: "71%", top: "64%", width: "18%", height: "6.5%" }}>Hamilton</div>
-
-                {/* SOUTH — Furnald | Hartley (mirrored edge verticals) */}
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "1.5%", top: "72%", width: "6%", height: "13%" }}>Furnald</div>
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "92.5%", top: "72%", width: "6%", height: "13%" }}>Hartley</div>
-
-                {/* SOUTH — lawns + sundial */}
-                <div className={B.lawn} style={{ left: "29%", top: "73%", width: "18%" }}>South Field<br />West</div>
-                <div className={B.lawn} style={{ left: "53%", top: "73%", width: "18%" }}>South Field<br />East</div>
-                <div className={B.sundial}><span>Sundial</span></div>
-
-                {/* SOUTH — bottom row: Lerner/Carman | Butler | John Jay (mirrored, hug borders) */}
-                <div className={B.cb} style={{ left: "1.5%", top: "86%", width: "20%", height: "6%" }}>Lerner Hall</div>
-                <div className={B.cb} style={{ left: "1.5%", top: "92.5%", width: "20%", height: "6%" }}>Carman</div>
-                <div className={B.cb} style={{ left: "78.5%", top: "86%", width: "20%", height: "12.5%" }}>John Jay</div>
-
-                {/* Live library heroes (Butler + Uris + NoCo): each with its own availability ring. */}
-                {libs.map(({ library, free, total, closed }) => {
-                  const place = PLACEMENT[library.slug];
-                  if (!place) return null;
-                  const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
-                  return (
-                    <Fragment key={library.slug}>
-                      {/* The count ring is now a tap target too (not just the hero card). */}
-                      <button
-                        className={`${B.ring} ${closed ? B.ringClosed : ""}`}
-                        style={{
-                          "--ring-color": color,
-                          left: place.ring.left,
-                          top: place.ring.top,
-                          boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
-                        } as React.CSSProperties}
-                        onClick={() => onEnter(library)}
-                        aria-label={`Open ${library.name} — ${closed ? "closed" : `${free} of ${total} open`}`}
-                      >
-                        <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
-                      </button>
-                      <button
-                        className={`${B.hero} ${B[library.slug]}`}
-                        style={place.hero}
-                        onClick={() => onEnter(library)}
-                        aria-label={`Open ${library.name}`}
-                      >
-                        {place.tall ? (
-                          // NoCo slab: the short name stacked UPRIGHT, each letter facing the
-                          // viewer; the pulsing ring that caps the top is the live cue.
-                          <span className={B.nmV}>
-                            {library.shortName.split("").map((ch, i) => (
-                              <span key={i}>{ch}</span>
-                            ))}
-                          </span>
-                        ) : (
-                          <>
-                            {/* Marks this as one of the few LIVE, tappable buildings among the
-                                decorative campus — the rest are static scenery. */}
-                            <span className={B.live}><i />Live</span>
-                            {place.motif === "pillars" ? (
-                              <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
-                            ) : place.motif === "dome" ? (
-                              <div className={B.dome} />
-                            ) : (
-                              <div className={B.tower}><i /><i /><i /></div>
-                            )}
-                            {/* A long name won't fit the small tile, so a library shows its short
-                                name when the full one is long. */}
-                            <div className={B.nm}>{library.name.length > 16 ? library.shortName : library.name}</div>
-                          </>
-                        )}
-                      </button>
-                    </Fragment>
-                  );
-                })}
-              </div>
-
-              {/* One tappable summary card per live library. */}
-              <div className={B.cards}>
-                {libs.map(({ library, free, total, closed, opensLabel, nextFreeLabel }) => {
-                  const { cls, color, word } = statusOf(free, total);
-                  const statusColor = closed ? "var(--ink-soft)" : color;
-                  // When nothing's bookable now, lead with the answer to "so when CAN I?" — the
-                  // soonest a room opens up. Closed libraries already say when they reopen.
-                  const tail = closed
-                    ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}`
-                    : free === 0
-                      ? nextFreeLabel
-                        ? `Full ${whenLabel} · next free ${nextFreeLabel}`
-                        : `Fully booked ${whenLabel}`
-                      : `${word} ${whenLabel}`;
-                  return (
-                    <button key={library.slug} className={B.sumcard} onClick={() => onEnter(library)}>
-                      <div className={B.stat} style={{ background: closed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
-                        <b style={{ color: statusColor }}>{closed ? "✕" : free}</b><em>OF {total}</em>
-                      </div>
-                      <div className={B.meta}>
-                        <h3>{library.name}</h3>
-                        <p>
-                          <span style={{ color: statusColor, fontWeight: 700 }}>{tail}</span>
-                        </p>
-                      </div>
-                      <div className={B.arrowcard}>
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ───────────────── EAST CAMPUS (right) — scenery only ───────────────── */}
-            <section className={B.panel} aria-hidden={idx !== 2}>
-              <div className={B.mapWrap}>
-                <div className={`${B.zone} ${B.north}`} style={{ height: "100%" }} />
-                {/* The Revson Plaza deck the east-of-Amsterdam buildings ring. */}
-                <div className={B.zone} style={{ left: "30%", top: "34%", width: "40%", height: "30%", borderRadius: "8px" }} />
-                {/* SIPA / International Affairs — the tall slab on the Amsterdam edge. */}
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "10%", width: "8%", height: "46%" }}>SIPA</div>
-                {/* East Campus residence tower — the tall block on the far east. */}
-                <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "90%", top: "8%", width: "8%", height: "52%" }}>East Campus</div>
-                {/* North cluster */}
-                <div className={B.cb} style={{ left: "15%", top: "4%", width: "22%", height: "10%" }}>Kent Hall</div>
-                <div className={B.cb} style={{ left: "41%", top: "4%", width: "18%", height: "8%" }}>Buell</div>
-                <div className={B.cb} style={{ left: "63%", top: "4%", width: "22%", height: "10%" }}>Casa Italiana</div>
-                {/* Mid row flanking the plaza */}
-                <div className={B.cb} style={{ left: "15%", top: "40%", width: "12%", height: "18%" }}>Deutsches Haus</div>
-                <div className={B.cb} style={{ left: "73%", top: "40%", width: "12%", height: "18%" }}>Wien Hall</div>
-                {/* South anchor — Jerome Greene (the Law School slab) */}
-                <div className={B.cb} style={{ left: "22%", top: "80%", width: "40%", height: "16%", fontSize: "11px", fontWeight: 800 }}>Jerome Greene Hall</div>
-                <div className={B.cb} style={{ left: "66%", top: "80%", width: "20%", height: "16%" }}>Greene Annex</div>
-              </div>
-              <div className={B.cards}>
-                <p className={B.emptyCards}>No live libraries here yet</p>
-              </div>
-            </section>
+      {/* Swipeable carousel. The maps and the cards are two tracks that slide in sync,
+          so the page dots can sit between them — right under the map, always visible. */}
+      <div className={`${B.carousel} anim d3`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div className={B.viewport}>
+          <div className={B.track} style={shift}>
+            {maps.map((scene, i) => (
+              <div className={B.panel} key={CAMPUSES[i]} aria-hidden={i !== idx}>{scene}</div>
+            ))}
           </div>
+
+          {/* Tall, skinny, low-opacity edge arrows — subtle hints that more campuses sit
+              left (Barnard) and right (East Campus). Tappable; each hides at its end. */}
+          {idx > 0 && (
+            <button className={`${B.arrow} ${B.arrowL}`} onClick={() => go(idx - 1)} aria-label={`Go to ${CAMPUS_LABEL[CAMPUSES[idx - 1]]}`}>
+              <svg viewBox="0 0 12 48" fill="none"><path d="M9 4 L3 24 L9 44" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          )}
+          {idx < CAMPUSES.length - 1 && (
+            <button className={`${B.arrow} ${B.arrowR}`} onClick={() => go(idx + 1)} aria-label={`Go to ${CAMPUS_LABEL[CAMPUSES[idx + 1]]}`}>
+              <svg viewBox="0 0 12 48" fill="none"><path d="M3 4 L9 24 L3 44" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          )}
         </div>
 
-        {/* Tall, skinny, low-opacity edge arrows — subtle hints that more campuses sit
-            left (Barnard) and right (East Campus). Tappable; each hides at its end. */}
-        {idx > 0 && (
-          <button className={`${B.arrow} ${B.arrowL}`} onClick={() => go(idx - 1)} aria-label={`Go to ${CAMPUS_LABEL[CAMPUSES[idx - 1]]}`}>
-            <svg viewBox="0 0 12 48" fill="none"><path d="M9 4 L3 24 L9 44" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
-        )}
-        {idx < CAMPUSES.length - 1 && (
-          <button className={`${B.arrow} ${B.arrowR}`} onClick={() => go(idx + 1)} aria-label={`Go to ${CAMPUS_LABEL[CAMPUSES[idx + 1]]}`}>
-            <svg viewBox="0 0 12 48" fill="none"><path d="M3 4 L9 24 L3 44" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
-        )}
-      </div>
+        {/* Which of the three campuses you're on (active one stretches into a pill). */}
+        <div className={B.dots}>
+          {CAMPUSES.map((c, i) => (
+            <button
+              key={c}
+              className={`${B.dot} ${i === idx ? B.dotOn : ""}`}
+              onClick={() => go(i)}
+              aria-label={`Go to ${CAMPUS_LABEL[c]}`}
+              aria-current={i === idx}
+            />
+          ))}
+        </div>
 
-      {/* Which of the three campuses you're on. */}
-      <div className={B.dots}>
-        {CAMPUSES.map((c, i) => (
-          <button
-            key={c}
-            className={`${B.dot} ${i === idx ? B.dotOn : ""}`}
-            onClick={() => go(i)}
-            aria-label={`Go to ${CAMPUS_LABEL[c]}`}
-            aria-current={i === idx}
-          />
-        ))}
+        <div className={B.viewport}>
+          <div className={B.track} style={shift}>
+            {cards.map((scene, i) => (
+              <div className={`${B.panel} ${B.cardPanel}`} key={CAMPUSES[i]} aria-hidden={i !== idx}>
+                <div className={B.cards}>{scene}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </>
   );
