@@ -15,13 +15,15 @@
 /* tall, skinny, deliberately faint edge arrows — a hint, not a shout. Tappable;
    vertically centered on the MAP (not the cards below), each hidden at its end. */
 .arrow{position:absolute;top:calc(10px + var(--map-h) / 2);transform:translateY(-50%);
-  z-index:9;width:26px;height:72px;padding:0;border:none;background:transparent;cursor:pointer;
+  z-index:9;width:20px;height:72px;padding:0;border:none;background:transparent;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:.2;transition:opacity .2s}
 .arrow:hover{opacity:.5}
 .arrow:active{opacity:.65}
-.arrowL{left:22px}
-.arrowR{right:22px}
-.arrow svg{width:12px;height:48px}
+/* Seated in the ~20px gutter OUTSIDE the map rectangle (which has a 20px side margin),
+   so the chevrons flank the map rather than overlapping its edges. */
+.arrowL{left:0}
+.arrowR{right:0}
+.arrow svg{width:11px;height:48px}
 
 /* page dots — which campus you're on (the active one stretches into a pill) */
 .dots{display:flex;gap:7px;justify-content:center;align-items:center;margin:7px 0 4px}
