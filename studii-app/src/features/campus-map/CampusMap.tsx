@@ -145,8 +145,8 @@ export function CampusMap({
       <div className={B.cb} style={{ left: "13%", top: "20%", width: "24%", height: "13%" }}>Vagelos Science Center</div>
       <div className={B.cb} style={{ left: "13%", top: "37%", width: "27%", height: "14%" }}>Milstein Center</div>
 
-      {/* LOWER-MIDDLE: Barnard Hall, centered. */}
-      <div className={B.cb} style={{ left: "20%", top: "56%", width: "28%", height: "12%" }}>Barnard Hall</div>
+      {/* LOWER-MIDDLE: Barnard Hall — left edge aligned to the Claremont-side column. */}
+      <div className={B.cb} style={{ left: "13%", top: "56%", width: "28%", height: "12%" }}>Barnard Hall</div>
 
       {/* SOUTH (116th St): Hewitt/Vagelos on Claremont, Brooks center, Sulzberger + Reid on Broadway. */}
       <div className={`${B.cb} ${B.lt}`} style={{ left: "13%", top: "70%", width: "14%", height: "16%" }}>Hewitt Hall</div>
