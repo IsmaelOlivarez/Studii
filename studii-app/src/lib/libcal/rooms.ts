@@ -69,6 +69,26 @@ export const SCIENCE_ENG: Library = {
   ],
 };
 
+// Lehman Social Sciences Library — in the International Affairs Building (SIPA), the
+// first live library on EAST CAMPUS (east of Amsterdam Ave, across the Law Bridge).
+// Just TWO bookable group-study rooms on Floor 3 — 327.1 & 327.2, both capacity 8
+// (verified live 2026-11-07 from the LibCal /spaces config: one group gid=30397
+// "Study Rooms", eids 116921/116922). A `gid=0` grid for this building returns exactly
+// these two, which `normalizeGrid` keeps via the spaceId filter. Hours derive per-day
+// from the grid, as usual.
+export const LEHMAN: Library = {
+  slug: "lehman",
+  name: "Lehman Social Sciences Library",
+  shortName: "Lehman",
+  lid: 14594,
+  campus: "east-campus",
+  floorLabel: "Floor 3 — Group Study",
+  rooms: [
+    { id: "327.1", cap: 8, spaceId: 116921 },
+    { id: "327.2", cap: 8, spaceId: 116922 },
+  ],
+};
+
 // Other CU library location ids — reference for future expansion (not yet in scope).
 export const LIBRARY_LIDS = {
   butler: 14585,
@@ -78,7 +98,7 @@ export const LIBRARY_LIDS = {
   socialWork: 14878,
 } as const;
 
-export const LIBRARIES: Library[] = [BUTLER, URIS, SCIENCE_ENG];
+export const LIBRARIES: Library[] = [BUTLER, URIS, SCIENCE_ENG, LEHMAN];
 
 export const getLibrary = (slug: string): Library | undefined =>
   LIBRARIES.find((l) => l.slug === slug);

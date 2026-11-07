@@ -76,6 +76,13 @@ const PLACEMENT: Record<
     motif: "tower",
     tall: true,
   },
+  // Lehman — on the EAST CAMPUS map, occupying the International Affairs Building footprint
+  // (top of the Amsterdam side); a book-spines motif for the Social Sciences library.
+  lehman: {
+    hero: { left: "13%", top: "5%", width: "24%", height: "15%" },
+    ring: { left: "16.5%", top: "5.5%" }, // top-left corner beacon → clears the Live badge + motif
+    motif: "book",
+  },
 };
 
 // The swipeable campuses, left → right. Morningside (the live map) sits in the middle
@@ -303,8 +310,8 @@ export function CampusMap({
       {/* Ancel Plaza — the raised hardscape plaza at the core (East Campus's signature). */}
       <div className={`${B.zone} ${B.plaza}`} style={{ left: "44%", top: "30%", width: "26%", height: "22%", borderRadius: "6px" }} />
 
-      {/* WEST column (Amsterdam side): SIPA, Italian Academy, Jerome Greene Hall. */}
-      <div className={B.cb} style={{ left: "13%", top: "5%", width: "22%", height: "15%" }}>International Affairs</div>
+      {/* WEST column (Amsterdam side): Italian Academy, Jerome Greene Hall. The SIPA /
+          International Affairs block at the top is now the live Lehman hero (see below). */}
       <div className={B.cb} style={{ left: "13%", top: "27%", width: "20%", height: "11%" }}>Italian Academy</div>
       <div className={B.cb} style={{ left: "13%", top: "60%", width: "24%", height: "16%" }}>Jerome Greene Hall</div>
 

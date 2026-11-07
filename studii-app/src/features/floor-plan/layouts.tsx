@@ -133,6 +133,30 @@ const scienceEng: FloorLayout = {
   }),
 };
 
-const LAYOUTS: Record<string, FloorLayout> = { butler, uris, "science-eng": scienceEng };
+// Lehman Social Sciences Library (International Affairs Building, Floor 3) — like NoCo,
+// just two group rooms (327.1, 327.2), so a clean two-tile layout: the two rooms side by
+// side off the reading room, over the social-sciences stacks. Both seat 8 → noted in the
+// legend, not per-tile.
+const lehman: FloorLayout = {
+  floorClass: "",
+  note: "floor 3 · both seat 8",
+  shell: (
+    <>
+      <div className={`${styles.nonb}`} style={{ left: "9%", top: "12px", width: "82%", height: "9%" }}>Reading Room</div>
+      <div className={`${styles.nonb} ${styles.sciCommons}`}>Social Sciences Stacks</div>
+      <div className={`${styles.nonb} ${styles.entry}`}>▽ Elevators · Floor 3</div>
+    </>
+  ),
+  roomProps: (_room, index) => ({
+    style: {
+      left: index === 0 ? "9%" : "54%",
+      top: "26%",
+      width: "37%",
+      height: "32%",
+    },
+  }),
+};
+
+const LAYOUTS: Record<string, FloorLayout> = { butler, uris, "science-eng": scienceEng, lehman };
 
 export const getFloorLayout = (slug: string): FloorLayout => LAYOUTS[slug] ?? butler;
