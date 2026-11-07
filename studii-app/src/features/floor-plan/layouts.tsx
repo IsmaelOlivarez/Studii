@@ -157,6 +157,45 @@ const lehman: FloorLayout = {
   }),
 };
 
-const LAYOUTS: Record<string, FloorLayout> = { butler, uris, "science-eng": scienceEng, lehman };
+// Barnard Library (Milstein Center) — nine group rooms spread over THREE floors, so,
+// like Uris, it uses `tiers`: one tab per floor, keyed off the room id's leading digit
+// (1xx/2xx/3xx). Each floor shows a different count (2 / 2 / 5), so the tiles aren't
+// hand-placed — they flow into a centered grid (≤3 per row) that adapts to the floor's
+// room count. The shell is a glassy Broadway-side header over the floor's study commons.
+const MLC_GRID = { marginX: 9, gapX: 5, cols: 3, top: 27, bottom: 60, gapY: 6 } as const;
+const milstein: FloorLayout = {
+  floorClass: "",
+  note: "milstein center · floors 1–3",
+  tiers: [
+    { key: "1", label: "Floor 1" },
+    { key: "2", label: "Floor 2" },
+    { key: "3", label: "Floor 3" },
+  ],
+  shell: (
+    <>
+      <div className={`${styles.nonb} ${styles.sciGlass}`}>Milstein · Teaching &amp; Learning</div>
+      <div className={`${styles.nonb} ${styles.sciCommons}`}>Study Commons</div>
+      <div className={`${styles.nonb} ${styles.entry}`}>▽ Elevators · Milstein Center</div>
+    </>
+  ),
+  roomProps: (_room, index, total) => {
+    const { marginX, gapX, cols, top, bottom, gapY } = MLC_GRID;
+    const perRow = Math.min(cols, total); // columns actually used this floor
+    const rows = Math.ceil(total / perRow);
+    const row = Math.floor(index / perRow);
+    const col = index % perRow;
+    const inThisRow = Math.min(perRow, total - row * perRow); // last row may be short → center it
+    const tileW = (100 - 2 * marginX - gapX * (perRow - 1)) / perRow;
+    const rowW = inThisRow * tileW + (inThisRow - 1) * gapX;
+    const left = (100 - rowW) / 2 + col * (tileW + gapX);
+    const tileH = (bottom - top - gapY * (rows - 1)) / rows;
+    const topPct = top + row * (tileH + gapY);
+    return {
+      style: { left: `${left}%`, top: `${topPct}%`, width: `${tileW}%`, height: `${tileH}%` },
+    };
+  },
+};
+
+const LAYOUTS: Record<string, FloorLayout> = { butler, uris, "science-eng": scienceEng, lehman, milstein };
 
 export const getFloorLayout = (slug: string): FloorLayout => LAYOUTS[slug] ?? butler;

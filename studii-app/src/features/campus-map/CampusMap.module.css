@@ -130,6 +130,8 @@
 .tower i:nth-child(1){height:8px}.tower i:nth-child(2){height:13px}.tower i:nth-child(3){height:10px}
 /* Lehman: a softly-rounded rectangle for the Social Sciences library on East Campus */
 .lehman{border-radius:9px}
+/* Milstein: the Barnard Library — a softly-rounded tile matching the campus footprints */
+.milstein{border-radius:9px}
 /* book-spines motif for Lehman — a little shelf of books, the last one leaning */
 .book{display:flex;align-items:flex-end;gap:2px;margin-bottom:1px}
 .book i{width:3px;height:12px;background:var(--accent);opacity:.5;border-radius:1px 1px 0 0}

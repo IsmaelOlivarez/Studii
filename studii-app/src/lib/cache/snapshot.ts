@@ -70,7 +70,7 @@ export async function refreshSnapshot(
     }
   }
 
-  const slots = await fetchGrid(library.lid, ymd(0), ymd(WINDOW_DAYS));
+  const slots = await fetchGrid(library.lid, ymd(0), ymd(WINDOW_DAYS), library.host);
   const snap = normalizeGrid(slots, library);
 
   const { error } = await supabaseAdmin()

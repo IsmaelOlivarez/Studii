@@ -8,10 +8,13 @@
 // the duration they picked here. A bare `YYYY-MM-DD` defaults to a midnight slot,
 // so always pass the time when we have one.
 
-import { getRoom } from "@/lib/libcal/rooms";
+import { getLibrary, getRoom } from "@/lib/libcal/rooms";
 import type { DateISO, RoomId } from "@/domain/types";
 
-const SPACE_BASE = "https://seats.library.columbia.edu/space/";
+// The LibCal space page lives on the SAME tenant we fetch availability from, so the
+// deep-link host must track the library's `host` (Barnard is a separate tenant).
+const DEFAULT_HOST = "seats.library.columbia.edu";
+const spaceBase = (host: string) => `https://${host}/space/`;
 
 const hhmmss = (min: number) => {
   const h = String(Math.floor(min / 60)).padStart(2, "0");
@@ -27,7 +30,8 @@ export function libcalDeepLink(
 ): string {
   const room = getRoom(librarySlug, roomId);
   if (!room) throw new Error(`unknown room ${librarySlug}/${roomId}`);
+  const host = getLibrary(librarySlug)?.host ?? DEFAULT_HOST;
   const dateParam =
     startMin == null ? date : `${date}T${hhmmss(startMin)}`;
-  return `${SPACE_BASE}${room.spaceId}?date=${encodeURIComponent(dateParam)}`;
+  return `${spaceBase(host)}${room.spaceId}?date=${encodeURIComponent(dateParam)}`;
 }

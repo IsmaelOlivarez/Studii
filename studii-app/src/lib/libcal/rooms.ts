@@ -89,6 +89,39 @@ export const LEHMAN: Library = {
   ],
 };
 
+// Barnard Library — the Milstein Center for Teaching & Learning ("MLC"), the first
+// live library on BARNARD's campus (west of Broadway). Barnard runs a SEPARATE
+// Springshare LibCal tenant — barnard.libcal.com, NOT Columbia's seats.library host —
+// so `host` is set and the grid POST + Referer target that origin (see client.fetchGrid).
+// NINE bookable group-study rooms across three floors (verified live 2026-11-07 from the
+// LibCal /reserve/study-rooms config: lid 8482, one group gid 15601 "Study Rooms"):
+//   • Floor 1: MLC-112 (59792), MLC-118 (59793)
+//   • Floor 2: MLC-226 (59958), MLC-227 (59959)
+//   • Floor 3: MLC-314 (59960), MLC-315 (59962), MLC-323 (59799), MLC-324 (59963), MLC-325 (59964)
+// A `gid=0` grid returns exactly these nine, which `normalizeGrid` keeps via the spaceId
+// filter. Room ids carry the floor as their leading digit (1xx/2xx/3xx) so the floor plan's
+// tiers split on it — like Uris's Ground/Mezzanine. Hours derive per-day from the grid.
+export const MILSTEIN: Library = {
+  slug: "milstein",
+  name: "Barnard Library (Milstein Center)",
+  shortName: "Milstein",
+  lid: 8482,
+  campus: "barnard",
+  host: "barnard.libcal.com",
+  floorLabel: "Milstein Center — Group Study",
+  rooms: [
+    { id: "112", cap: 3, spaceId: 59792 },
+    { id: "118", cap: 3, spaceId: 59793 },
+    { id: "226", cap: 2, spaceId: 59958 },
+    { id: "227", cap: 2, spaceId: 59959 },
+    { id: "314", cap: 3, spaceId: 59960 },
+    { id: "315", cap: 4, spaceId: 59962 },
+    { id: "323", cap: 2, spaceId: 59799 },
+    { id: "324", cap: 2, spaceId: 59963 },
+    { id: "325", cap: 2, spaceId: 59964 },
+  ],
+};
+
 // Other CU library location ids — reference for future expansion (not yet in scope).
 export const LIBRARY_LIDS = {
   butler: 14585,
@@ -98,7 +131,7 @@ export const LIBRARY_LIDS = {
   socialWork: 14878,
 } as const;
 
-export const LIBRARIES: Library[] = [BUTLER, URIS, SCIENCE_ENG, LEHMAN];
+export const LIBRARIES: Library[] = [BUTLER, URIS, SCIENCE_ENG, LEHMAN, MILSTEIN];
 
 export const getLibrary = (slug: string): Library | undefined =>
   LIBRARIES.find((l) => l.slug === slug);

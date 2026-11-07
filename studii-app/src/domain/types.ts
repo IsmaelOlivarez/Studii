@@ -20,6 +20,10 @@ export interface Library {
   shortName: string; // "Butler" — compact label for tight UI (room sheet, chips)
   lid: number; // LibCal location id
   campus: Campus; // which campus panel its map hero + summary card appear on
+  /** Springshare LibCal host, e.g. "barnard.libcal.com". Omit for Columbia's tenant
+   *  (seats.library.columbia.edu). Barnard is a SEPARATE tenant, so its grid POST +
+   *  Referer must target its own origin — this selects it (see client.fetchGrid). */
+  host?: string;
   floorLabel: string; // "Floor 4 — Group Study"
   rooms: Room[];
   // NOTE: operating hours are NOT configured here. They're derived per-day from the

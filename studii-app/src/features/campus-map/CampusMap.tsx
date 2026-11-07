@@ -84,11 +84,20 @@ const PLACEMENT: Record<
     ring: { left: "34%", top: "8.5%" },
     motif: "book",
   },
+  // Milstein — on the BARNARD map, the Milstein Center for Teaching & Learning at the
+  // core of the narrow campus strip (its real spot, between Vagelos above and Barnard
+  // Hall below). Takes over the former static "Milstein Center" footprint; ring centered
+  // on the tile; book-spines motif (the Barnard Library lives here).
+  milstein: {
+    hero: { left: "13%", top: "38%", width: "27%", height: "15%" },
+    ring: { left: "26.5%", top: "38.5%" }, // top-center beacon so the name shows below
+    motif: "book",
+  },
 };
 
 // The swipeable campuses, left → right. Morningside (the live map) sits in the middle
-// so the app launches on it; Barnard and East Campus are scenery-only shells for now —
-// real-ish silhouettes marking where future libraries will live.
+// so the app launches on it. All three now carry at least one live library — Milstein on
+// Barnard, Lehman on East Campus — amid real-ish silhouette scenery.
 const CAMPUSES = ["barnard", "morningside", "east-campus"] as const;
 const CAMPUS_LABEL: Record<(typeof CAMPUSES)[number], string> = {
   barnard: "Barnard",
@@ -201,7 +210,8 @@ export function CampusMap({
   // (west) and Broadway (east, the Main Gate), running 120th St → 116th St. Milbank
   // spans the north, the angular Diana Center sits upper-east, Milstein holds the
   // center with Futter Field — the signature lawn — on the Broadway side, Barnard Hall
-  // below, then the Arthur Ross Courtyard and the southern residence cluster. Scenery only.
+  // below, then the Arthur Ross Courtyard and the southern residence cluster. Milstein is
+  // the live library hero; the rest is scenery.
   const barnardMap = (
     <div className={B.mapWrap}>
       {/* The two avenues that pinch the campus into its narrow strip. */}
@@ -217,9 +227,9 @@ export function CampusMap({
       <div className={B.cb} style={{ left: "13%", top: "4%", width: "34%", height: "12%" }}>Milbank Hall</div>
       <div className={`${B.cb} ${B.diana}`} style={{ left: "66%", top: "5%", width: "19%", height: "15%" }}>Diana Center</div>
 
-      {/* UPPER-MIDDLE: Vagelos Science Center under Milbank, Milstein at the core. */}
+      {/* UPPER-MIDDLE: Vagelos Science Center under Milbank. Milstein is the live hero
+          (below), drawn over its real footprint at the core. */}
       <div className={B.cb} style={{ left: "13%", top: "20%", width: "24%", height: "13%" }}>Vagelos Science Center</div>
-      <div className={B.cb} style={{ left: "13%", top: "37%", width: "27%", height: "14%" }}>Milstein Center</div>
 
       {/* LOWER-MIDDLE: Barnard Hall — left edge aligned to the Claremont-side column. */}
       <div className={B.cb} style={{ left: "13%", top: "56%", width: "28%", height: "12%" }}>Barnard Hall</div>
@@ -230,6 +240,9 @@ export function CampusMap({
       <div className={`${B.cb} ${B.lt}`} style={{ left: "31%", top: "83%", width: "20%", height: "12%" }}>Brooks Hall</div>
       <div className={`${B.cb} ${B.lt}`} style={{ left: "65%", top: "70%", width: "20%", height: "12%" }}>Sulzberger Hall</div>
       <div className={`${B.cb} ${B.lt}`} style={{ left: "65%", top: "85%", width: "20%", height: "11%" }}>Reid Hall</div>
+
+      {/* Live library hero: Milstein (Barnard Library), over its core footprint. */}
+      {renderHeroes(libsByCampus("barnard"))}
     </div>
   );
 
