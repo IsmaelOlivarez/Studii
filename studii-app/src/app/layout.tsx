@@ -27,6 +27,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   themeColor: "#201b14",
+  // Lay out edge-to-edge under the notch/status bar so `env(safe-area-inset-*)` reports
+  // real insets; the top/bottom paddings below keep content clear of the notch + home bar.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
