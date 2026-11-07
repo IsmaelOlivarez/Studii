@@ -272,20 +272,37 @@ export function CampusMap({
     </div>
   );
 
-  // East Campus: the cluster east of Amsterdam ringing Revson Plaza; scenery only.
+  // East Campus: the superblock EAST of Amsterdam Ave, linked to the main campus by the
+  // Law Bridge (Revson Plaza). Framed by Amsterdam Ave (west) and Morningside Drive
+  // (east), 116th → ~119th. SIPA + Italian Academy + Jerome Greene Hall align down the
+  // Amsterdam side, the East Campus residence tower and Ancel Plaza hold the core, Wien
+  // below, and Heyman Center / Faculty House / President's House line Morningside Dr.
   const eastMap = (
     <div className={B.mapWrap}>
-      <div className={`${B.zone} ${B.north}`} style={{ height: "100%" }} />
-      <div className={B.zone} style={{ left: "30%", top: "34%", width: "40%", height: "30%", borderRadius: "8px" }} />
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "10%", width: "8%", height: "46%" }}>SIPA</div>
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "90%", top: "8%", width: "8%", height: "52%" }}>East Campus</div>
-      <div className={B.cb} style={{ left: "15%", top: "4%", width: "22%", height: "10%" }}>Kent Hall</div>
-      <div className={B.cb} style={{ left: "41%", top: "4%", width: "18%", height: "8%" }}>Buell</div>
-      <div className={B.cb} style={{ left: "63%", top: "4%", width: "22%", height: "10%" }}>Casa Italiana</div>
-      <div className={B.cb} style={{ left: "15%", top: "40%", width: "12%", height: "18%" }}>Deutsches Haus</div>
-      <div className={B.cb} style={{ left: "73%", top: "40%", width: "12%", height: "18%" }}>Wien Hall</div>
-      <div className={B.cb} style={{ left: "22%", top: "80%", width: "40%", height: "16%", fontSize: "11px", fontWeight: 800 }}>Jerome Greene Hall</div>
-      <div className={B.cb} style={{ left: "66%", top: "80%", width: "20%", height: "16%" }}>Greene Annex</div>
+      {/* The avenues bounding the precinct. */}
+      <div className={`${B.ave} ${B.aveL}`}><span>Amsterdam Ave</span></div>
+      <div className={`${B.ave} ${B.aveR}`}><span>Morningside Dr</span></div>
+
+      {/* The Law Bridge (Revson Plaza) decking across Amsterdam to the main campus. */}
+      <div className={B.bridge} style={{ left: "0%", top: "63%", width: "15%", height: "5.5%" }}><span>Law Bridge</span></div>
+
+      {/* Ancel Plaza — the raised hardscape plaza at the core (East Campus's signature). */}
+      <div className={`${B.zone} ${B.plaza}`} style={{ left: "44%", top: "30%", width: "26%", height: "22%", borderRadius: "6px" }} />
+
+      {/* WEST column (Amsterdam side): SIPA, Italian Academy, Jerome Greene Hall. */}
+      <div className={B.cb} style={{ left: "13%", top: "5%", width: "22%", height: "15%" }}>International Affairs</div>
+      <div className={B.cb} style={{ left: "13%", top: "27%", width: "20%", height: "11%" }}>Italian Academy</div>
+      <div className={B.cb} style={{ left: "13%", top: "60%", width: "24%", height: "16%" }}>Jerome Greene Hall</div>
+
+      {/* CENTER column: East Campus residence tower, Wien Hall, Jerome Greene Annex. */}
+      <div className={B.cb} style={{ left: "44%", top: "5%", width: "24%", height: "18%" }}>East Campus</div>
+      <div className={B.cb} style={{ left: "44%", top: "58%", width: "22%", height: "12%" }}>Wien Hall</div>
+      <div className={B.cb} style={{ left: "44%", top: "73%", width: "20%", height: "10%" }}>Jerome Greene Annex</div>
+
+      {/* EAST column (Morningside Dr side): Heyman Center, Faculty House, President's House. */}
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "7%", width: "16%", height: "12%" }}>Heyman Center</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "40%", width: "16%", height: "13%" }}>Faculty House</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "72%", width: "16%", height: "12%" }}>President&apos;s House</div>
     </div>
   );
 
