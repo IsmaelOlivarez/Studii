@@ -55,7 +55,7 @@ function statusOf(free: number, total: number): { cls: string; color: string; wo
 // campus — with a glass-tower motif echoing the modern NWC building.
 const PLACEMENT: Record<
   string,
-  { hero: React.CSSProperties; ring: React.CSSProperties; motif: "pillars" | "dome" | "tower"; tall?: boolean }
+  { hero: React.CSSProperties; ring: React.CSSProperties; motif: "pillars" | "dome" | "tower" | "book"; tall?: boolean }
 > = {
   butler: {
     hero: { left: "28%", top: "85%", width: "44%", height: "14%" },
@@ -119,6 +119,74 @@ export function CampusMap({
     startX.current = null;
   };
   const shift = { transform: `translateX(${-idx * 100}%)` }; // both tracks move together
+
+  // Each library declares which campus it lives on; a map only draws its own campus's
+  // live heroes (so Morningside's rings stay on Morningside, Lehman's on East Campus).
+  const libsByCampus = (c: (typeof CAMPUSES)[number]) =>
+    libs.filter((l) => l.library.campus === c);
+
+  // Live library heroes for one campus: a tappable count ring + a hero tile with its
+  // motif, overlaid on that campus's scenery. Reused by every map that has live
+  // libraries (Morningside; East Campus once Lehman lands) — a campus with no PLACEMENT
+  // entry for a lib simply draws nothing.
+  const renderHeroes = (campusLibs: LibStat[]) =>
+    campusLibs.map(({ library, free, total, closed }) => {
+      const place = PLACEMENT[library.slug];
+      if (!place) return null;
+      const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
+      return (
+        <Fragment key={library.slug}>
+          {/* The count ring is a tap target too (not just the hero card). */}
+          <button
+            className={`${B.ring} ${closed ? B.ringClosed : ""}`}
+            style={{
+              "--ring-color": color,
+              left: place.ring.left,
+              top: place.ring.top,
+              boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
+            } as React.CSSProperties}
+            onClick={() => onEnter(library)}
+            aria-label={`Open ${library.name} — ${closed ? "closed" : `${free} of ${total} open`}`}
+          >
+            <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
+          </button>
+          <button
+            className={`${B.hero} ${B[library.slug]}`}
+            style={place.hero}
+            onClick={() => onEnter(library)}
+            aria-label={`Open ${library.name}`}
+          >
+            {place.tall ? (
+              // A thin vertical slab (NoCo): the short name stacked UPRIGHT, each letter
+              // facing the viewer; the pulsing ring that caps it is the live cue.
+              <span className={B.nmV}>
+                {library.shortName.split("").map((ch, i) => (
+                  <span key={i}>{ch}</span>
+                ))}
+              </span>
+            ) : (
+              <>
+                {/* Marks this as one of the few LIVE, tappable buildings among the
+                    decorative campus — the rest are static scenery. */}
+                <span className={B.live}><i />Live</span>
+                {place.motif === "pillars" ? (
+                  <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
+                ) : place.motif === "dome" ? (
+                  <div className={B.dome} />
+                ) : place.motif === "book" ? (
+                  <div className={B.book}><i /><i /><i /></div>
+                ) : (
+                  <div className={B.tower}><i /><i /><i /></div>
+                )}
+                {/* A long name won't fit the small tile, so a library shows its short
+                    name when the full one is long. */}
+                <div className={B.nm}>{library.name.length > 16 ? library.shortName : library.name}</div>
+              </>
+            )}
+          </button>
+        </Fragment>
+      );
+    });
 
   // ── The three map scenes (Barnard · Morningside · East Campus) ──────────────
   // Barnard: the real campus is a NARROW north–south block framed by Claremont Ave
@@ -214,61 +282,7 @@ export function CampusMap({
       <div className={B.cb} style={{ left: "78.5%", top: "86%", width: "20%", height: "12.5%" }}>John Jay</div>
 
       {/* Live library heroes (Butler + Uris + NoCo): each with its own availability ring. */}
-      {libs.map(({ library, free, total, closed }) => {
-        const place = PLACEMENT[library.slug];
-        if (!place) return null;
-        const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
-        return (
-          <Fragment key={library.slug}>
-            {/* The count ring is now a tap target too (not just the hero card). */}
-            <button
-              className={`${B.ring} ${closed ? B.ringClosed : ""}`}
-              style={{
-                "--ring-color": color,
-                left: place.ring.left,
-                top: place.ring.top,
-                boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
-              } as React.CSSProperties}
-              onClick={() => onEnter(library)}
-              aria-label={`Open ${library.name} — ${closed ? "closed" : `${free} of ${total} open`}`}
-            >
-              <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
-            </button>
-            <button
-              className={`${B.hero} ${B[library.slug]}`}
-              style={place.hero}
-              onClick={() => onEnter(library)}
-              aria-label={`Open ${library.name}`}
-            >
-              {place.tall ? (
-                // NoCo slab: the short name stacked UPRIGHT, each letter facing the
-                // viewer; the pulsing ring that caps the top is the live cue.
-                <span className={B.nmV}>
-                  {library.shortName.split("").map((ch, i) => (
-                    <span key={i}>{ch}</span>
-                  ))}
-                </span>
-              ) : (
-                <>
-                  {/* Marks this as one of the few LIVE, tappable buildings among the
-                      decorative campus — the rest are static scenery. */}
-                  <span className={B.live}><i />Live</span>
-                  {place.motif === "pillars" ? (
-                    <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
-                  ) : place.motif === "dome" ? (
-                    <div className={B.dome} />
-                  ) : (
-                    <div className={B.tower}><i /><i /><i /></div>
-                  )}
-                  {/* A long name won't fit the small tile, so a library shows its short
-                      name when the full one is long. */}
-                  <div className={B.nm}>{library.name.length > 16 ? library.shortName : library.name}</div>
-                </>
-              )}
-            </button>
-          </Fragment>
-        );
-      })}
+      {renderHeroes(libsByCampus("morningside"))}
     </div>
   );
 
@@ -303,17 +317,21 @@ export function CampusMap({
       <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "7%", width: "16%", height: "12%" }}>Heyman Center</div>
       <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "40%", width: "16%", height: "13%" }}>Faculty House</div>
       <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "72%", width: "16%", height: "12%" }}>President&apos;s House</div>
+
+      {/* Live library heroes on East Campus (Lehman, in the International Affairs bldg). */}
+      {renderHeroes(libsByCampus("east-campus"))}
     </div>
   );
 
   const maps = [barnardMap, morningsideMap, eastMap];
 
-  // ── The cards beneath each map: live summaries for Morningside, a quiet empty
-  //    line for the two scenery-only campuses. These slide in lockstep with the maps.
-  const emptyCards = <p className={B.emptyCards}>No live libraries here yet</p>;
-  const morningsideCards = (
-    <>
-      {libs.map(({ library, free, total, closed, opensLabel, nextFreeLabel }) => {
+  // ── The cards beneath each map: live summaries for the campus's libraries, or a quiet
+  //    empty line when a campus has none yet. These slide in lockstep with the maps.
+  const renderCards = (campusLibs: LibStat[]) =>
+    campusLibs.length === 0 ? (
+      <p className={B.emptyCards}>No live libraries here yet</p>
+    ) : (
+      campusLibs.map(({ library, free, total, closed, opensLabel, nextFreeLabel }) => {
         const { cls, color, word } = statusOf(free, total);
         const statusColor = closed ? "var(--ink-soft)" : color;
         // When nothing's bookable now, lead with the answer to "so when CAN I?" — the
@@ -341,10 +359,9 @@ export function CampusMap({
             </div>
           </button>
         );
-      })}
-    </>
-  );
-  const cards = [emptyCards, morningsideCards, emptyCards];
+      })
+    );
+  const cards = CAMPUSES.map((c) => renderCards(libsByCampus(c)));
 
   return (
     <>

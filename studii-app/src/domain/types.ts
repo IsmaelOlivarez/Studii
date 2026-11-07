@@ -11,11 +11,15 @@ export interface Room {
   spaceId: SpaceId;
 }
 
+/** Which swipeable campus map a library lives on (drives where its hero/card render). */
+export type Campus = "morningside" | "barnard" | "east-campus";
+
 export interface Library {
   slug: string; // "butler"
   name: string; // "Butler Library"
   shortName: string; // "Butler" — compact label for tight UI (room sheet, chips)
   lid: number; // LibCal location id
+  campus: Campus; // which campus panel its map hero + summary card appear on
   floorLabel: string; // "Floor 4 — Group Study"
   rooms: Room[];
   // NOTE: operating hours are NOT configured here. They're derived per-day from the

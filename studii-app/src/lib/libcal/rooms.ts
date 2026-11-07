@@ -8,6 +8,7 @@ export const BUTLER: Library = {
   name: "Butler Library",
   shortName: "Butler",
   lid: 14585,
+  campus: "morningside",
   floorLabel: "Floor 4 — Group Study",
   rooms: [
     { id: "403A", cap: 8, spaceId: 116915 },
@@ -33,6 +34,7 @@ export const URIS: Library = {
   name: "Uris Library",
   shortName: "Uris",
   lid: 14596,
+  campus: "morningside",
   floorLabel: "Ground & Mezzanine — Group Study",
   rooms: [
     ...Array.from({ length: 17 }, (_, i) => ({
@@ -59,6 +61,7 @@ export const SCIENCE_ENG: Library = {
   name: "Science & Engineering Library",
   shortName: "NoCo",
   lid: 14595,
+  campus: "morningside",
   floorLabel: "Floor 6 — Group Study",
   rooms: [
     { id: "605", cap: 8, spaceId: 116923 },
