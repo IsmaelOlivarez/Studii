@@ -133,27 +133,27 @@ export function CampusMap({
       <div className={`${B.ave} ${B.aveR}`}><span>Broadway</span></div>
 
       {/* Signature green spaces: Futter Field (east/mid) + Arthur Ross Courtyard (south). */}
-      <div className={B.zone} style={{ left: "50%", top: "23%", width: "37%", height: "27%", borderRadius: "7px" }} />
-      <div className={B.zone} style={{ left: "30%", top: "68%", width: "26%", height: "8%", borderRadius: "6px" }} />
+      <div className={B.zone} style={{ left: "52%", top: "24%", width: "33%", height: "28%", borderRadius: "7px" }} />
+      <div className={B.zone} style={{ left: "31%", top: "71%", width: "20%", height: "8%", borderRadius: "6px" }} />
 
       {/* NORTH (120th St): Milbank across the top; the Diana Center's angular slab upper-east.
-          Footprints are kept FLAT (map-like) with walkway gaps between the rows. */}
-      <div className={B.cb} style={{ left: "11%", top: "4%", width: "49%", height: "9%" }}>Milbank Hall</div>
-      <div className={`${B.cb} ${B.diana}`} style={{ left: "64%", top: "5%", width: "23%", height: "12%" }}>Diana Center</div>
+          Footprints are kept NARROW (thin map-like blocks) with gaps between the rows. */}
+      <div className={B.cb} style={{ left: "13%", top: "4%", width: "34%", height: "12%" }}>Milbank Hall</div>
+      <div className={`${B.cb} ${B.diana}`} style={{ left: "66%", top: "5%", width: "19%", height: "15%" }}>Diana Center</div>
 
       {/* UPPER-MIDDLE: Vagelos Science Center under Milbank, Milstein at the core. */}
-      <div className={B.cb} style={{ left: "11%", top: "19%", width: "31%", height: "10%" }}>Vagelos Science Center</div>
-      <div className={B.cb} style={{ left: "11%", top: "34%", width: "35%", height: "11%" }}>Milstein Center</div>
+      <div className={B.cb} style={{ left: "13%", top: "20%", width: "24%", height: "13%" }}>Vagelos Science Center</div>
+      <div className={B.cb} style={{ left: "13%", top: "37%", width: "27%", height: "14%" }}>Milstein Center</div>
 
       {/* LOWER-MIDDLE: Barnard Hall, centered. */}
-      <div className={B.cb} style={{ left: "24%", top: "52%", width: "36%", height: "10%" }}>Barnard Hall</div>
+      <div className={B.cb} style={{ left: "20%", top: "56%", width: "28%", height: "12%" }}>Barnard Hall</div>
 
       {/* SOUTH (116th St): Hewitt/Vagelos on Claremont, Brooks center, Sulzberger + Reid on Broadway. */}
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "11%", top: "67%", width: "16%", height: "14%" }}>Hewitt Hall</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "11%", top: "84%", width: "16%", height: "8%" }}>Vagelos</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "30%", top: "81%", width: "26%", height: "11%" }}>Brooks Hall</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "62%", top: "67%", width: "25%", height: "11%" }}>Sulzberger Hall</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "62%", top: "81%", width: "25%", height: "11%" }}>Reid Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "13%", top: "70%", width: "14%", height: "16%" }}>Hewitt Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "13%", top: "89%", width: "14%", height: "7%" }}>Vagelos</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "31%", top: "83%", width: "20%", height: "12%" }}>Brooks Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "65%", top: "70%", width: "20%", height: "12%" }}>Sulzberger Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "65%", top: "85%", width: "20%", height: "11%" }}>Reid Hall</div>
     </div>
   );
 
