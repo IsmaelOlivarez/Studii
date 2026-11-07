@@ -5,16 +5,7 @@ import { statusAt } from "@/lib/time/slots";
 import { DAY_END } from "@/domain/constants";
 import type { Library, RoomAvailability } from "@/domain/types";
 import { getFloorLayout } from "./layouts";
-
-// Status is carried by a distinct GLYPH per state (not color alone), so it survives for
-// colorblind users and screen readers (WCAG 1.4.1). Color stays as a reinforcing cue.
-const GLYPH: Record<string, string> = { free: "✓", limited: "◷", full: "✕", closed: "–" };
-const STATUS_WORD: Record<string, string> = {
-  free: "open",
-  limited: "ends soon",
-  full: "booked",
-  closed: "closed",
-};
+import { GLYPH, STATUS_WORD } from "./StatusKey";
 
 export function FloorPlan({
   library,
@@ -47,14 +38,6 @@ export function FloorPlan({
 
   return (
     <>
-      <div className={styles.legend}>
-        <i><b className={styles.sw} style={{ background: "var(--free)" }} aria-hidden>✓</b>Open</i>
-        <i><b className={styles.sw} style={{ background: "var(--limited)" }} aria-hidden>◷</b>Ends soon</i>
-        <i><b className={styles.sw} style={{ background: "var(--full)" }} aria-hidden>✕</b>Booked</i>
-        <i><b className={styles.sw} style={{ background: "var(--ink-faint)" }} aria-hidden>–</b>Closed</i>
-        {layout.note && <i className={styles.note}>{layout.note}</i>}
-      </div>
-
       {layout.tiers && (
         <div className={styles.floorTabs} role="tablist">
           {layout.tiers.map((t) => {

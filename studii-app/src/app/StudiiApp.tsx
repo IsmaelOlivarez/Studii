@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import styles from "./StudiiApp.module.css";
 import { CampusMap } from "@/features/campus-map/CampusMap";
 import { FloorPlan } from "@/features/floor-plan/FloorPlan";
+import { StatusKey } from "@/features/floor-plan/StatusKey";
+import { getFloorLayout } from "@/features/floor-plan/layouts";
 import { TimeBar } from "@/features/availability/TimeBar";
 import { DateChips } from "@/features/availability/DateChips";
 import { RoomSheet } from "@/features/booking/RoomSheet";
@@ -61,6 +63,9 @@ export function StudiiApp() {
   // The library the user has opened from the map. Drives the whole detail view
   // (header, floor plan, room sheet, which snapshot it reads).
   const [activeLibrary, setActiveLibrary] = useState<Library>(BUTLER);
+  // The glyph/color key is tucked behind a header ⓘ toggle (the tiles carry status on
+  // their own), so the detail view opens clean. Reset it whenever the view changes.
+  const [showKey, setShowKey] = useState(false);
 
   const refreshAll = useCallback(() => {
     for (const lib of LIBRARIES) {
@@ -237,6 +242,7 @@ export function StudiiApp() {
               libs={libStats}
               onEnter={(library) => {
                 setActiveLibrary(library);
+                setShowKey(false);
                 setView("detail");
               }}
               whenLabel={whenLabel}
@@ -264,17 +270,36 @@ export function StudiiApp() {
 
         <section className={`${styles.screen} ${styles.detailScreen}`}>
           <div className={styles.dhead}>
-            <button className={styles.back} onClick={() => setView("map")} aria-label="Back">
+            <button className={styles.back} onClick={() => { setShowKey(false); setView("map"); }} aria-label="Back">
               <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
             <div className={styles.dtitle}>
-              <h2>{activeLibrary.name}</h2>
+              <div className={styles.dtitleRow}>
+                <h2>{activeLibrary.name}</h2>
+                <button
+                  className={`${styles.keyBtn} ${showKey ? styles.keyBtnOn : ""}`}
+                  onClick={() => setShowKey((v) => !v)}
+                  aria-label="Room status key"
+                  aria-expanded={showKey}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><circle cx="12" cy="7.5" r="1.2" fill="currentColor" /></svg>
+                </button>
+              </div>
               {detailClosed ? (
                 <p className={styles.dclosed}>
                   {detailOpensLabel ? `Closed · opens ${detailOpensLabel.str}${detailOpensLabel.mer}` : "Closed"}
                 </p>
               ) : (
                 <p className={`${styles.dcount} ${detailFree === 0 ? styles.dcountNone : ""}`}><b>{detailFree}</b> of {activeLibrary.rooms.length} open</p>
+              )}
+              {showKey && (
+                <>
+                  {/* tap-away catcher so the key closes on any outside tap */}
+                  <button className={styles.keyScrim} aria-hidden tabIndex={-1} onClick={() => setShowKey(false)} />
+                  <div className={styles.keyPop}>
+                    <StatusKey note={getFloorLayout(activeLibrary.slug).note} />
+                  </div>
+                </>
               )}
             </div>
             <button
