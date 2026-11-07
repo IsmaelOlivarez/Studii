@@ -93,6 +93,15 @@
 /* East Campus is a hardscape superblock, so its signature open space (Ancel Plaza)
    is paved stone rather than a lawn — overrides the green `.zone` fill. */
 .plaza{background:linear-gradient(160deg,#e7e0cf,#d6ccb4)}
+.plaza::after{content:none}
+/* Morningside Park — the green that fronts Morningside Dr on the east edge of East Campus */
+.park{background:color-mix(in srgb, var(--free) 24%, var(--campus-ground));
+  display:flex;align-items:center;justify-content:center;z-index:1;
+  box-shadow:inset 2px 0 0 color-mix(in srgb, var(--free) 24%, transparent)}
+.park::after{content:none}
+.park span{writing-mode:vertical-rl;transform:rotate(180deg);
+  font-family:var(--font-mono);font-weight:600;font-size:8px;letter-spacing:.15em;
+  text-transform:uppercase;color:color-mix(in srgb, var(--free) 55%, var(--ink-soft));opacity:.8}
 /* The Law Bridge (Revson Plaza) deck crossing Amsterdam Ave to the main campus. */
 .bridge{position:absolute;z-index:4;border-radius:2px;
   display:flex;align-items:center;justify-content:center;

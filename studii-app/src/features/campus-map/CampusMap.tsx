@@ -76,11 +76,12 @@ const PLACEMENT: Record<
     motif: "tower",
     tall: true,
   },
-  // Lehman — on the EAST CAMPUS map, occupying the International Affairs Building footprint
-  // (top of the Amsterdam side); a book-spines motif for the Social Sciences library.
+  // Lehman — on the EAST CAMPUS map, the big central-north International Affairs Building
+  // (SIPA), where the Social Sciences Library actually sits. Ring caps the top-center as a
+  // beacon, echoing the real map pin at the top of the building; book-spines motif.
   lehman: {
-    hero: { left: "13%", top: "5%", width: "24%", height: "15%" },
-    ring: { left: "16.5%", top: "5.5%" }, // top-left corner beacon → clears the Live badge + motif
+    hero: { left: "13%", top: "8%", width: "42%", height: "22%" },
+    ring: { left: "34%", top: "8.5%" },
     motif: "book",
   },
 };
@@ -293,39 +294,39 @@ export function CampusMap({
     </div>
   );
 
-  // East Campus: the superblock EAST of Amsterdam Ave, linked to the main campus by the
-  // Law Bridge (Revson Plaza). Framed by Amsterdam Ave (west) and Morningside Drive
-  // (east), 116th → ~119th. SIPA + Italian Academy + Jerome Greene Hall align down the
-  // Amsterdam side, the East Campus residence tower and Ancel Plaza hold the core, Wien
-  // below, and Heyman Center / Faculty House / President's House line Morningside Dr.
+  // East Campus: the superblock EAST of Amsterdam Ave, drawn from the real Google-map
+  // layout. Framed by Amsterdam Ave (west) and Morningside Drive (east), with Morningside
+  // Park's green fronting the Drive. The International Affairs Building (SIPA) is the big
+  // central-north block — Lehman Social Sciences Library lives there, so it's the live
+  // hero. Below/east of it is the East Campus residence, with Faculty House + Wien Hall
+  // to the south, Butler Hall on the Morningside-Dr corner, and the Law School (Jerome
+  // Greene Hall) at the south. The Law Bridge (Revson Plaza) decks across Amsterdam.
   const eastMap = (
     <div className={B.mapWrap}>
-      {/* The avenues bounding the precinct. */}
+      {/* Amsterdam Ave (west) + Morningside Dr (east), with the park beyond the Drive. */}
       <div className={`${B.ave} ${B.aveL}`}><span>Amsterdam Ave</span></div>
-      <div className={`${B.ave} ${B.aveR}`}><span>Morningside Dr</span></div>
+      <div className={`${B.ave} ${B.aveR}`} style={{ right: "11%" }}><span>Morningside Dr</span></div>
+      <div className={`${B.zone} ${B.park}`} style={{ left: "auto", right: "0", width: "11%", top: 0, bottom: 0, height: "auto", borderRadius: 0 }}><span>Morningside Park</span></div>
 
-      {/* The Law Bridge (Revson Plaza) decking across Amsterdam to the main campus. */}
-      <div className={B.bridge} style={{ left: "0%", top: "63%", width: "15%", height: "5.5%" }}><span>Law Bridge</span></div>
+      {/* The Law Bridge (Revson Plaza) decking across Amsterdam at the SIPA/Law level. */}
+      <div className={B.bridge} style={{ left: "0%", top: "42%", width: "14%", height: "5.5%" }}><span>Law Bridge</span></div>
 
-      {/* Ancel Plaza — the raised hardscape plaza at the core (East Campus's signature). */}
-      <div className={`${B.zone} ${B.plaza}`} style={{ left: "44%", top: "30%", width: "26%", height: "22%", borderRadius: "6px" }} />
+      {/* Revson Plaza / the East Campus courtyard hardscape at the core. */}
+      <div className={`${B.zone} ${B.plaza}`} style={{ left: "20%", top: "40%", width: "20%", height: "15%", borderRadius: "6px" }} />
 
-      {/* WEST column (Amsterdam side): Italian Academy, Jerome Greene Hall. The SIPA /
-          International Affairs block at the top is now the live Lehman hero (see below). */}
-      <div className={B.cb} style={{ left: "13%", top: "27%", width: "20%", height: "11%" }}>Italian Academy</div>
-      <div className={B.cb} style={{ left: "13%", top: "60%", width: "24%", height: "16%" }}>Jerome Greene Hall</div>
+      {/* NE corner on Morningside Dr: Butler Hall (a residential tower). */}
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "60%", top: "9%", width: "17%", height: "15%" }}>Butler Hall</div>
 
-      {/* CENTER column: East Campus residence tower, Wien Hall, Jerome Greene Annex. */}
-      <div className={B.cb} style={{ left: "44%", top: "5%", width: "24%", height: "18%" }}>East Campus</div>
-      <div className={B.cb} style={{ left: "44%", top: "58%", width: "22%", height: "12%" }}>Wien Hall</div>
-      <div className={B.cb} style={{ left: "44%", top: "73%", width: "20%", height: "10%" }}>Jerome Greene Annex</div>
+      {/* CENTER: East Campus residence (below/east of International Affairs). */}
+      <div className={B.cb} style={{ left: "42%", top: "40%", width: "26%", height: "18%" }}>East Campus</div>
 
-      {/* EAST column (Morningside Dr side): Heyman Center, Faculty House, President's House. */}
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "7%", width: "16%", height: "12%" }}>Heyman Center</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "40%", width: "16%", height: "13%" }}>Faculty House</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "71%", top: "72%", width: "16%", height: "12%" }}>President&apos;s House</div>
+      {/* SOUTH: Faculty House + Wien Hall; the Law School (Jerome Greene Hall) along 116th. */}
+      <div className={B.cb} style={{ left: "44%", top: "64%", width: "20%", height: "12%" }}>Faculty House</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "13%", top: "60%", width: "22%", height: "12%" }}>Wien Hall</div>
+      <div className={B.cb} style={{ left: "13%", top: "80%", width: "34%", height: "14%" }}>Jerome Greene Hall</div>
 
-      {/* Live library heroes on East Campus (Lehman, in the International Affairs bldg). */}
+      {/* Live library hero: Lehman, in the International Affairs Building (big central-north
+          block — see the PLACEMENT.lehman footprint). */}
       {renderHeroes(libsByCampus("east-campus"))}
     </div>
   );
