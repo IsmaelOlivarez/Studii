@@ -121,22 +121,38 @@ export function CampusMap({
   const shift = { transform: `translateX(${-idx * 100}%)` }; // both tracks move together
 
   // ── The three map scenes (Barnard · Morningside · East Campus) ──────────────
-  // Barnard: a narrow campus wrapping its central lawn (Futter Field); scenery only.
+  // Barnard: the real campus is a NARROW north–south block framed by Claremont Ave
+  // (west) and Broadway (east, the Main Gate), running 120th St → 116th St. Milbank
+  // spans the north, the angular Diana Center sits upper-east, Milstein holds the
+  // center with Futter Field — the signature lawn — on the Broadway side, Barnard Hall
+  // below, then the Arthur Ross Courtyard and the southern residence cluster. Scenery only.
   const barnardMap = (
     <div className={B.mapWrap}>
-      <div className={`${B.zone} ${B.north}`} style={{ height: "100%" }} />
-      <div className={B.zone} style={{ left: "32%", top: "30%", width: "36%", height: "34%", borderRadius: "8px" }} />
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "6%", width: "7%", height: "18%" }}>Milbank</div>
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "27%", width: "7%", height: "16%" }}>Barnard Hall</div>
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "46%", width: "7%", height: "16%" }}>Altschul</div>
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "2%", top: "65%", width: "7%", height: "18%" }}>LeFrak</div>
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "8%", width: "7%", height: "20%" }}>Sulzberger</div>
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "31%", width: "7%", height: "18%" }}>Brooks</div>
-      <div className={`${B.cb} ${B.v} ${B.lt}`} style={{ left: "91%", top: "52%", width: "7%", height: "18%" }}>Hewitt</div>
-      <div className={B.cb} style={{ left: "24%", top: "4%", width: "30%", height: "9%" }}>Milstein Center</div>
-      <div className={B.cb} style={{ left: "58%", top: "4%", width: "22%", height: "9%" }}>Diana Center</div>
-      <div className={B.cb} style={{ left: "26%", top: "84%", width: "26%", height: "12%" }}>Lehman Hall</div>
-      <div className={B.cb} style={{ left: "56%", top: "84%", width: "24%", height: "12%" }}>Elliott Hall</div>
+      {/* The two avenues that pinch the campus into its narrow strip. */}
+      <div className={`${B.ave} ${B.aveL}`}><span>Claremont Ave</span></div>
+      <div className={`${B.ave} ${B.aveR}`}><span>Broadway</span></div>
+
+      {/* Signature green spaces: Futter Field (east/mid) + Arthur Ross Courtyard (south). */}
+      <div className={B.zone} style={{ left: "50%", top: "22%", width: "37%", height: "30%", borderRadius: "7px" }} />
+      <div className={B.zone} style={{ left: "30%", top: "70%", width: "26%", height: "9%", borderRadius: "6px" }} />
+
+      {/* NORTH (120th St): Milbank across the top; the Diana Center's angular slab upper-east. */}
+      <div className={B.cb} style={{ left: "11%", top: "3%", width: "49%", height: "12%" }}>Milbank Hall</div>
+      <div className={`${B.cb} ${B.diana}`} style={{ left: "64%", top: "4%", width: "23%", height: "16%" }}>Diana Center</div>
+
+      {/* UPPER-MIDDLE: Vagelos Science Center under Milbank, Milstein at the core. */}
+      <div className={B.cb} style={{ left: "11%", top: "18%", width: "31%", height: "13%" }}>Vagelos Science Center</div>
+      <div className={B.cb} style={{ left: "11%", top: "34%", width: "35%", height: "16%" }}>Milstein Center</div>
+
+      {/* LOWER-MIDDLE: Barnard Hall, centered. */}
+      <div className={B.cb} style={{ left: "24%", top: "54%", width: "36%", height: "13%" }}>Barnard Hall</div>
+
+      {/* SOUTH (116th St): Hewitt/Vagelos on Claremont, Brooks center, Sulzberger + Reid on Broadway. */}
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "11%", top: "66%", width: "16%", height: "18%" }}>Hewitt Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "11%", top: "87%", width: "16%", height: "9%" }}>Vagelos</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "30%", top: "82%", width: "26%", height: "14%" }}>Brooks Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "62%", top: "66%", width: "25%", height: "13%" }}>Sulzberger Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "62%", top: "82%", width: "25%", height: "14%" }}>Reid Hall</div>
     </div>
   );
 

@@ -70,6 +70,19 @@
   width:10px;height:10px;border-radius:50%;background:var(--campus-ground);box-shadow:0 0 0 2px var(--campus-building)}
 .sundial span{display:none}
 
+/* Barnard: two avenues pinch the campus into its real narrow N–S strip. The labels
+   echo the College Walk treatment (the only other named right-of-way on a map). */
+.ave{position:absolute;top:0;bottom:0;z-index:1;width:8%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(90deg,#ece6d8,#e3dcc9)}
+.aveL{left:0;box-shadow:inset -1px 0 0 rgba(44,74,110,.08)}
+.aveR{right:0;box-shadow:inset 1px 0 0 rgba(44,74,110,.08)}
+.ave span{writing-mode:vertical-rl;font-family:var(--font-mono);font-weight:700;
+  font-size:8px;line-height:1;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);opacity:.75}
+.aveL span{transform:rotate(180deg)}
+/* The Diana Center's angular Weiss/Manfredi silhouette — a slanted north face. */
+.diana{clip-path:polygon(0 15%,100% 0,100% 100%,0 100%)}
+
 /* library heroes on the map (position/size supplied inline per library) */
 .hero{position:absolute;border-radius:7px;cursor:pointer;z-index:6;border:none;
   background:linear-gradient(160deg,#fbf7ec,#f0e7d1);
