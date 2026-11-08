@@ -399,9 +399,6 @@ export function CampusMap({
           These stay FIXED above all three campuses (they drive the live Morningside map). */}
       <div className={`${B.maptime} anim d2`}>
         <DateChips dateKeys={time.dateKeys} activeIdx={time.dateIdx} onSelect={time.onSelectDate} compact />
-        {/* Preselect the booking length BEFORE opening a library — every ring, card, and
-            the detail floor plan recompute off this choice. */}
-        <DurationToggle value={duration.value} onChange={duration.onChange} compact />
         <TimeBar
           compact
           freeAt={time.freeAt}
@@ -419,6 +416,9 @@ export function CampusMap({
           axisStart={time.axisStart}
           axisEnd={time.axisEnd}
         />
+        {/* Preselect the booking length BEFORE opening a library — every ring, card, and
+            the detail floor plan recompute off this choice. Sits under the scrubber. */}
+        <DurationToggle value={duration.value} onChange={duration.onChange} compact />
       </div>
 
       {/* Swipeable carousel. The maps and the cards are two tracks that slide in sync,
