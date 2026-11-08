@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import styles from "./TimeBar.module.css";
-import { DAY_START, DAY_END } from "@/domain/constants";
+import { DAY_START, DAY_END, MIN_DURATION } from "@/domain/constants";
 import { freeCount } from "@/lib/time/slots";
 import { fmtTime } from "@/lib/time/date";
 import { isOpenAt, closeAfter, opensLaterToday, closedStretches } from "@/lib/time/hours";
@@ -33,6 +33,7 @@ export function TimeBar({
   onJump,
   axisStart = DAY_START,
   axisEnd = DAY_END,
+  want = MIN_DURATION,
 }: {
   /** A single library's day (detail view). Ignored when `freeAt` is supplied. */
   day?: RoomAvailability[];
@@ -68,13 +69,16 @@ export function TimeBar({
    *  their overnight hours are actually on-screen and scrubbable. */
   axisStart?: number;
   axisEnd?: number;
+  /** Desired booking length (minutes) from the duration preselector — used only on the
+   *  fallback (detail) count path; the map passes its own duration-aware `freeAt`. */
+  want?: number;
 }) {
   const SPAN = axisEnd - axisStart;
   // Cap bookability at the end of the open interval covering `t` (detail view derives it
   // from `open`; the map supplies its own `freeAt`). A room that can't fit a 30-min block
   // before that close reads as unavailable, so segments just before closing go red.
   const capAt = (t: number) => (open ? closeAfter(open, t) || DAY_END : DAY_END);
-  const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t, capAt(t)));
+  const countAt = freeAt ?? ((t: number) => freeCount(day ?? [], t, capAt(t), want));
   // Denominator at a minute: rooms actually in service then (drops closed libraries
   // on the map). Defaults to the fixed total (detail view: a single library).
   const totalOf = totalAt ?? (() => total);

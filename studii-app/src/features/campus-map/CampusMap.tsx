@@ -4,6 +4,7 @@ import { Fragment, useRef, useState } from "react";
 import styles from "./CampusMap.module.css";
 import { DateChips } from "@/features/availability/DateChips";
 import { TimeBar } from "@/features/availability/TimeBar";
+import { DurationToggle, type DurationPref } from "@/features/availability/DurationToggle";
 import type { OpenHours } from "@/lib/time/hours";
 import type { Library } from "@/domain/types";
 
@@ -111,11 +112,13 @@ export function CampusMap({
   onEnter,
   whenLabel,
   time,
+  duration,
 }: {
   libs: LibStat[];
   onEnter: (library: Library) => void;
   whenLabel: string;
   time: MapTimeControls;
+  duration: { value: DurationPref; onChange: (p: DurationPref) => void };
 }) {
   const B = styles; // shorthand
 
@@ -396,6 +399,9 @@ export function CampusMap({
           These stay FIXED above all three campuses (they drive the live Morningside map). */}
       <div className={`${B.maptime} anim d2`}>
         <DateChips dateKeys={time.dateKeys} activeIdx={time.dateIdx} onSelect={time.onSelectDate} compact />
+        {/* Preselect the booking length BEFORE opening a library — every ring, card, and
+            the detail floor plan recompute off this choice. */}
+        <DurationToggle value={duration.value} onChange={duration.onChange} compact />
         <TimeBar
           compact
           freeAt={time.freeAt}

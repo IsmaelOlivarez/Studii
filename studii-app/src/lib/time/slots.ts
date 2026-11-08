@@ -31,17 +31,20 @@ export function openUntil(busy: BusyRange[], from: number, cap: number = DAY_END
   return cap;
 }
 
-export function statusAt(busy: BusyRange[], min: number, cap: number = DAY_END): RoomStatus {
+export function statusAt(busy: BusyRange[], min: number, cap: number = DAY_END, want: number = MIN_DURATION): RoomStatus {
   if (busyAt(busy, min)) return "full";
   const free = openUntil(busy, min, cap) - min;
-  if (free < MIN_DURATION) return "full"; // can't fit a 30-min booking → unavailable
+  // `want` is the user's desired block (default = LibCal's 30-min minimum). A room that
+  // can't fit it before the next booking or close doesn't satisfy the request → "full".
+  if (free < Math.max(want, MIN_DURATION)) return "full";
   return free <= 30 ? "limited" : "free";
 }
 
-/** Can a minimum booking (MIN_DURATION) start at `min` — not busy, and ≥30 min of free
- *  time before the next booking or close. This is the real "available" predicate. */
-export function bookableAt(busy: BusyRange[], min: number, cap: number = DAY_END): boolean {
-  return !busyAt(busy, min) && openUntil(busy, min, cap) - min >= MIN_DURATION;
+/** Can a booking of `want` minutes (default MIN_DURATION) start at `min` — not busy, and
+ *  ≥`want` min of free time before the next booking or close. This is the real "available"
+ *  predicate; raising `want` is how the duration preselector narrows the count. */
+export function bookableAt(busy: BusyRange[], min: number, cap: number = DAY_END, want: number = MIN_DURATION): boolean {
+  return !busyAt(busy, min) && openUntil(busy, min, cap) - min >= Math.max(want, MIN_DURATION);
 }
 
 /** Longest bookable duration from `from`: min(2h, time until next booking or close). */
@@ -49,9 +52,10 @@ export function maxBookable(busy: BusyRange[], from: number, cap: number = DAY_E
   return Math.min(MAX_DURATION, openUntil(busy, from, cap) - from);
 }
 
-/** How many rooms can actually be booked at `min` (accounts for close via `cap`). */
-export function freeCount(rooms: { busy: BusyRange[] }[], min: number, cap: number = DAY_END): number {
-  return rooms.filter((r) => bookableAt(r.busy, min, cap)).length;
+/** How many rooms can actually be booked at `min` for `want` minutes (accounts for close
+ *  via `cap`). `want` defaults to the 30-min minimum — the duration preselector raises it. */
+export function freeCount(rooms: { busy: BusyRange[] }[], min: number, cap: number = DAY_END, want: number = MIN_DURATION): number {
+  return rooms.filter((r) => bookableAt(r.busy, min, cap, want)).length;
 }
 
 /**
@@ -66,6 +70,7 @@ export function nextFreeMinute(
   rooms: { busy: BusyRange[] }[],
   from: number,
   hours: OpenHours,
+  want: number = MIN_DURATION,
 ): number | null {
   for (const [openStart, closeMin] of hours) {
     if (closeMin <= from) continue; // interval already fully in the past
@@ -73,7 +78,7 @@ export function nextFreeMinute(
     // (a booking ends at :00/:15/:30/:45), giving a tidy "frees at 6:00pm" label.
     let t = Math.ceil(Math.max(from, openStart) / SLOT_MINUTES) * SLOT_MINUTES;
     for (; t < closeMin; t += SLOT_MINUTES) {
-      if (rooms.some((r) => bookableAt(r.busy, t, closeMin))) return t;
+      if (rooms.some((r) => bookableAt(r.busy, t, closeMin, want))) return t;
     }
   }
   return null;

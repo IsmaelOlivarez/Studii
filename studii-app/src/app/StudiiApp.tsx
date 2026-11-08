@@ -7,6 +7,7 @@ import { StatusKey } from "@/features/floor-plan/StatusKey";
 import { getFloorLayout } from "@/features/floor-plan/layouts";
 import { TimeBar } from "@/features/availability/TimeBar";
 import { DateChips } from "@/features/availability/DateChips";
+import { wantMinutes, type DurationPref } from "@/features/availability/DurationToggle";
 import { RoomSheet } from "@/features/booking/RoomSheet";
 import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
@@ -66,6 +67,11 @@ export function StudiiApp() {
   // The glyph/color key is tucked behind a header ⓘ toggle (the tiles carry status on
   // their own), so the detail view opens clean. Reset it whenever the view changes.
   const [showKey, setShowKey] = useState(false);
+  // Desired booking length, preselected on the map (default "all" = no preference). Drives
+  // what counts as a "free" room everywhere — map rings/cards, detail header, floor tiles,
+  // and the "next open" jumps all resolve availability against `want` minutes.
+  const [durPref, setDurPref] = useState<DurationPref>("all");
+  const want = wantMinutes(durPref);
 
   const refreshAll = useCallback(() => {
     for (const lib of LIBRARIES) {
@@ -171,10 +177,10 @@ export function StudiiApp() {
     const closed = !isOpenAt(libHours[i], selMin);
     const opensMin = opensLaterToday(libHours[i], selMin);
     const fo = opensMin != null ? fmtTime(opensMin) : null;
-    const free = closed ? 0 : freeCount(libDays[i], selMin, capAt(i, selMin));
+    const free = closed ? 0 : freeCount(libDays[i], selMin, capAt(i, selMin), want);
     // When nothing is bookable right now, answer "so when CAN I?" — the soonest minute a
-    // room frees up (or the library reopens with a room free). null = nothing more today.
-    const nf = free === 0 ? nextFreeMinute(libDays[i], selMin, libHours[i]) : null;
+    // room frees up for the desired length (or the library reopens with one). null = none today.
+    const nf = free === 0 ? nextFreeMinute(libDays[i], selMin, libHours[i], want) : null;
     const nff = nf != null ? fmtTime(nf) : null;
     return {
       library,
@@ -190,7 +196,7 @@ export function StudiiApp() {
   // Only libraries open at that minute contribute to the campus N/total — a closed library
   // (incl. one sitting in a mid-day gap, or absent-grid) drops out of both num and denom.
   const campusFreeAt = (t: number) =>
-    LIBRARIES.reduce((s, _lib, i) => s + (isOpenAt(libHours[i], t) ? freeCount(libDays[i], t, capAt(i, t)) : 0), 0);
+    LIBRARIES.reduce((s, _lib, i) => s + (isOpenAt(libHours[i], t) ? freeCount(libDays[i], t, capAt(i, t), want) : 0), 0);
   const campusOpenTotal = (t: number) =>
     LIBRARIES.reduce((s, lib, i) => s + (isOpenAt(libHours[i], t) ? lib.rooms.length : 0), 0);
   const whenLabel = live && isToday ? "now" : `at ${selTimeLabel}`;
@@ -221,11 +227,11 @@ export function StudiiApp() {
   const detailCloseMin = closeAfter(detailHours, selMin) || DAY_END;
   // Live open-count for the active library at selMin — shown in the detail header
   // (so the count isn't duplicated down in the time bar). Updates as you scrub.
-  const detailFree = detailClosed ? 0 : freeCount(day, selMin, detailCloseMin);
+  const detailFree = detailClosed ? 0 : freeCount(day, selMin, detailCloseMin, want);
   const detailOpensLabel = detailOpensMin != null ? fmtTime(detailOpensMin) : null;
   // Soonest bookable minute in the active library when nothing is open now → powers the
   // "Next open" jump on the detail time bar.
-  const detailNextFree = detailFree === 0 ? nextFreeMinute(day, selMin, detailHours) : null;
+  const detailNextFree = detailFree === 0 ? nextFreeMinute(day, selMin, detailHours, want) : null;
   // Detail axis spans the active library's real hours — full 00:00–24:00 for 24h Butler,
   // the standard frame (with closed edges/gaps greyed) otherwise.
   const [detailAxisStart, detailAxisEnd] = axisBounds(detailHours);
@@ -246,6 +252,7 @@ export function StudiiApp() {
                 setView("detail");
               }}
               whenLabel={whenLabel}
+              duration={{ value: durPref, onChange: setDurPref }}
               time={{
                 dateKeys,
                 dateIdx,
@@ -310,9 +317,9 @@ export function StudiiApp() {
             </button>
           </div>
           <div className={styles.scroll}>
-            <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} onRoomClick={setActiveRoom} />
+            <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} want={want} onRoomClick={setActiveRoom} />
             <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={onSelectDate} />
-            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailHours} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} axisStart={detailAxisStart} axisEnd={detailAxisEnd} />
+            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailHours} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} axisStart={detailAxisStart} axisEnd={detailAxisEnd} want={want} />
             <div style={{ height: 14 }} />
           </div>
         </section>
