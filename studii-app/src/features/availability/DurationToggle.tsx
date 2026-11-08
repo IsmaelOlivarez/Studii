@@ -30,7 +30,7 @@ export function DurationToggle({
 }) {
   return (
     <div className={`${styles.wrap} ${compact ? styles.compact : ""}`} role="group" aria-label="Desired booking length">
-      <span className={styles.lead}>Need</span>
+      <span className={styles.lead}>Time<br />Len</span>
       <div className={styles.seg}>
         {OPTS.map(({ val, label }) => (
           <button
