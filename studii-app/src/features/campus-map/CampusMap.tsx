@@ -427,7 +427,9 @@ export function CampusMap({
         <div className={B.viewport}>
           <div className={B.track} style={shift}>
             {maps.map((scene, i) => (
-              <div className={B.panel} key={CAMPUSES[i]} aria-hidden={i !== idx}>{scene}</div>
+              // `inert` on off-screen campuses keeps their hero/card buttons out of the tab
+              // order (aria-hidden alone leaves focusable descendants reachable).
+              <div className={B.panel} key={CAMPUSES[i]} aria-hidden={i !== idx} inert={i !== idx}>{scene}</div>
             ))}
           </div>
 
@@ -461,7 +463,7 @@ export function CampusMap({
         <div className={B.viewport}>
           <div className={B.track} style={shift}>
             {cards.map((scene, i) => (
-              <div className={`${B.panel} ${B.cardPanel}`} key={CAMPUSES[i]} aria-hidden={i !== idx}>
+              <div className={`${B.panel} ${B.cardPanel}`} key={CAMPUSES[i]} aria-hidden={i !== idx} inert={i !== idx}>
                 <div className={B.cards}>{scene}</div>
               </div>
             ))}

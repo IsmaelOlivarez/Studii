@@ -33,6 +33,7 @@ export function RoomSheet({
   closeMin = DAY_END,
   openHours = [],
   opensMin = null,
+  preferDur = null,
   open,
   onClose,
 }: {
@@ -46,20 +47,58 @@ export function RoomSheet({
   closeMin?: number; // close of the interval covering selMin → caps the bookable window
   openHours?: OpenHours; // the day's open intervals → day-strip spans real hours + greys gaps
   opensMin?: number | null; // when it opens later that day, if applicable
+  preferDur?: number | null; // map-preselected length (min); null = no preference → default max
   open: boolean;
   onClose: () => void;
 }) {
-  const [selDur, setSelDur] = useState(120);
+  // Seed the length picker from the map preselection when the user stated one; otherwise
+  // keep the previous default (2h / max).
+  const DEFAULT_DUR = preferDur ?? 120;
+  const [selDur, setSelDur] = useState(DEFAULT_DUR);
   const [reserved, setReserved] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [dontShow, setDontShow] = useState(false);
   const [count, setCount] = useState(NOTE_SECONDS);
 
+  // Focus plumbing for the sheet + the pre-booking dialog (Escape to close, focus moves in
+  // on open and returns to the opener on close).
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const noteBtnRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     setReserved(false);
-    setSelDur(120);
+    setSelDur(DEFAULT_DUR);
     setNoteOpen(false);
-  }, [room?.id]);
+  }, [room?.id, DEFAULT_DUR]);
+
+  // Escape closes the pre-booking note first (if up), otherwise the sheet.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (noteOpen) setNoteOpen(false);
+      else onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, noteOpen, onClose]);
+
+  // Remember what had focus when the sheet opened; hand it back when it closes.
+  useEffect(() => {
+    if (!open) return;
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    return () => restoreFocusRef.current?.focus?.();
+  }, [open]);
+
+  // Move focus into whichever surface is on top: the note dialog's primary button, else
+  // the sheet itself.
+  useEffect(() => {
+    if (!open) return;
+    const target = noteOpen ? noteBtnRef.current : sheetRef.current;
+    const id = requestAnimationFrame(() => target?.focus());
+    return () => cancelAnimationFrame(id);
+  }, [open, noteOpen]);
 
   const busyNow = room ? busyAt(busy, selMin) : false;
   const until = room ? openUntil(busy, selMin, closeMin) : DAY_END;
@@ -196,7 +235,14 @@ export function RoomSheet({
   return (
     <>
       <div className={`${styles.scrim} ${open ? styles.scrimOpen : ""}`} onClick={onClose} />
-      <div className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`}>
+      <div
+        ref={sheetRef}
+        className={`${styles.sheet} ${open ? styles.sheetOpen : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={room ? `Room ${room.id} booking` : "Room booking"}
+        tabIndex={-1}
+      >
         <div className={styles.grip} />
         {room && (
           <>
@@ -284,7 +330,7 @@ export function RoomSheet({
             <input type="checkbox" checked={dontShow} onChange={toggleDontShow} />
             <span>Don&apos;t show this again</span>
           </label>
-          <button className={styles.noteBtn} onClick={() => go(true)}>
+          <button ref={noteBtnRef} className={styles.noteBtn} onClick={() => go(true)}>
             Take me there <span className={styles.noteArrow}>→</span>
             <em className={styles.noteCount}>opens in {count}s</em>
           </button>

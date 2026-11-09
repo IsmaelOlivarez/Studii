@@ -72,6 +72,9 @@ export function StudiiApp() {
   // and the "next open" jumps all resolve availability against `want` minutes.
   const [durPref, setDurPref] = useState<DurationPref>("all");
   const want = wantMinutes(durPref);
+  // Carry the map preselection into the booking sheet's length picker. "all" = no stated
+  // preference, so the sheet keeps its own default (max); a chosen 30/90/120 seeds it.
+  const preferDur = durPref === "all" ? null : durPref;
 
   const refreshAll = useCallback(() => {
     for (const lib of LIBRARIES) {
@@ -335,6 +338,7 @@ export function StudiiApp() {
           closeMin={detailCloseMin}
           openHours={detailHours}
           opensMin={detailOpensMin}
+          preferDur={preferDur}
           open={!!activeRoom}
           onClose={() => setActiveRoom(null)}
         />
