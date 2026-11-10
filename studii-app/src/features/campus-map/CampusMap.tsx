@@ -81,8 +81,16 @@ const PLACEMENT: Record<
   // (SIPA), where the Social Sciences Library actually sits. Ring caps the top-center as a
   // beacon, echoing the real map pin at the top of the building; book-spines motif.
   lehman: {
-    hero: { left: "13%", top: "8%", width: "42%", height: "22%" },
-    ring: { left: "34%", top: "8.5%" },
+    hero: { left: "13%", top: "18%", width: "42%", height: "20%" },
+    ring: { left: "34%", top: "18.5%" },
+    motif: "book",
+  },
+  // Social Work (CSSW) — on the EAST CAMPUS map, stacked just NORTH of SIPA/Lehman on the
+  // Amsterdam side (its real spot at 121st–122nd, north of SIPA at 118th). A compact book-
+  // motif hero capping the top strip; ring top-center as the live beacon.
+  "social-work": {
+    hero: { left: "13%", top: "2%", width: "30%", height: "12%" },
+    ring: { left: "26.5%", top: "2.5%" },
     motif: "book",
   },
   // Milstein — on the BARNARD map, the Milstein Center for Teaching & Learning at the

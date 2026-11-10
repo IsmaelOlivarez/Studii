@@ -196,6 +196,28 @@ const milstein: FloorLayout = {
   },
 };
 
-const LAYOUTS: Record<string, FloorLayout> = { butler, uris, "science-eng": scienceEng, lehman, milstein };
+// Social Work Library (CSSW, Floor 2) — like Lehman/NoCo, just two group rooms (205, 206)
+// side by side off the reading room. Both seat 6 → noted in the legend, not per-tile.
+const socialWork: FloorLayout = {
+  floorClass: "",
+  note: "floor 2 · both seat 6",
+  shell: (
+    <>
+      <div className={`${styles.nonb}`} style={{ left: "9%", top: "12px", width: "82%", height: "9%" }}>Reading Room</div>
+      <div className={`${styles.nonb} ${styles.sciCommons}`}>Social Work Collection</div>
+      <div className={`${styles.nonb} ${styles.entry}`}>▽ Elevators · Floor 2</div>
+    </>
+  ),
+  roomProps: (_room, index) => ({
+    style: {
+      left: index === 0 ? "9%" : "54%",
+      top: "26%",
+      width: "37%",
+      height: "32%",
+    },
+  }),
+};
+
+const LAYOUTS: Record<string, FloorLayout> = { butler, uris, "science-eng": scienceEng, lehman, milstein, "social-work": socialWork };
 
 export const getFloorLayout = (slug: string): FloorLayout => LAYOUTS[slug] ?? butler;

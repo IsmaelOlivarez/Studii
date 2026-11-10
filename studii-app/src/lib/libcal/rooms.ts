@@ -122,6 +122,26 @@ export const MILSTEIN: Library = {
   ],
 };
 
+// Social Work Library — at the Columbia School of Social Work (1255 Amsterdam Ave,
+// 121st–122nd), just north of SIPA across the Law Bridge → lives on the EAST CAMPUS map.
+// TWO bookable group-study rooms on Floor 2 — 205 & 206, both capacity 6 (verified live
+// 2026-11-09 from the LibCal grid + space pages: lid 14878, gid=0 returns exactly spaceIds
+// 144817 (205) and 120571 (206); note the ids are NOT sequential, so they're listed
+// explicitly). Columbia's standard tenant (no `host` override). `normalizeGrid` keeps the
+// two via the spaceId filter; hours derive per-day from the grid, as usual.
+export const SOCIAL_WORK: Library = {
+  slug: "social-work",
+  name: "Social Work Library",
+  shortName: "Social Work",
+  lid: 14878,
+  campus: "east-campus",
+  floorLabel: "Floor 2 — Group Study",
+  rooms: [
+    { id: "205", cap: 6, spaceId: 144817 },
+    { id: "206", cap: 6, spaceId: 120571 },
+  ],
+};
+
 // Other CU library location ids — reference for future expansion (not yet in scope).
 export const LIBRARY_LIDS = {
   butler: 14585,
@@ -131,7 +151,7 @@ export const LIBRARY_LIDS = {
   socialWork: 14878,
 } as const;
 
-export const LIBRARIES: Library[] = [BUTLER, URIS, SCIENCE_ENG, LEHMAN, MILSTEIN];
+export const LIBRARIES: Library[] = [BUTLER, URIS, SCIENCE_ENG, LEHMAN, MILSTEIN, SOCIAL_WORK];
 
 export const getLibrary = (slug: string): Library | undefined =>
   LIBRARIES.find((l) => l.slug === slug);
