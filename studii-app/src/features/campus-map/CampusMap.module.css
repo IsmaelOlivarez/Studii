@@ -110,9 +110,11 @@
 .bridge span{font-family:var(--font-mono);font-weight:700;font-size:6px;line-height:1;
   letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
 
-/* ── Barnard: a colored, labeled PLAN — soft-blue buildings on a connected green campus
-   lawn, matching the look of the printed Barnard campus map. All rules are scoped under
-   `.barnard` so the muted Morningside / East-Campus maps stay untouched. ── */
+/* ── Barnard: a legible PLAN — labeled footprints on a connected green campus lawn.
+   Footprints keep the SAME muted fill + hairline as the CU (Morningside) map (base
+   `.cb`/`.lt`); the only Barnard difference is that labels are shown and wrap. Scoped
+   under `.barnard` so the Morningside / East-Campus maps stay untouched. ── */
+.barnard{--bo:color-mix(in srgb,var(--campus-building) 48%,var(--card))} /* opaque hairline tone for Diana's sloped outline */
 /* avenues here are just the vertical label on the cream margin (no tan band) */
 .barnard .ave{background:none}
 .barnard .aveL,.barnard .aveR{box-shadow:none}
@@ -120,25 +122,19 @@
 .blawn{position:absolute;left:8%;top:16%;width:84%;height:80%;border-radius:12px;
   background:color-mix(in srgb,var(--free) 23%,var(--card));
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--free) 20%,transparent)}
-/* the quad's circular roundabout, under Milbank's open south face */
-.bcircle{position:absolute;left:48%;top:18%;transform:translate(-50%,-50%);z-index:2;
-  width:28px;height:28px;border-radius:50%;background:var(--campus-ground);
-  box-shadow:0 0 0 2px color-mix(in srgb,var(--free) 42%,transparent)}
 /* Futter Field — a label on the open green (it has no box of its own) */
 .bfield{position:absolute;z-index:2;display:flex;align-items:center;justify-content:center;
   text-align:center;font-family:var(--font-ui);font-weight:700;font-size:12px;line-height:1.14;
   letter-spacing:-.01em;color:color-mix(in srgb,var(--free) 50%,var(--ink))}
-/* soft-blue building footprints WITH visible labels (the plan is meant to be read) */
-.barnard .cb{background:color-mix(in srgb,var(--campus-building) 40%,var(--card));
-  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--campus-building) 52%,var(--ink)),
-             0 2px 5px -2px rgba(var(--shadow),.28);
-  color:var(--ink);white-space:normal;line-height:1.12;font-size:10.5px;font-weight:700;
-  letter-spacing:-.01em;padding:3px 6px;border-radius:5px}
-/* small residence squares — a lighter blue, left unlabeled (like the printed map) */
-.barnard .lt{background:color-mix(in srgb,var(--campus-building) 26%,var(--card));
-  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--campus-building) 40%,var(--ink)),
-             0 2px 5px -2px rgba(var(--shadow),.2);
-  color:transparent}
+/* keep the CU muted fill/hairline (base `.cb`/`.lt`) — only make the label legible + wrap */
+.barnard .cb{color:var(--ink);white-space:normal;line-height:1.12;font-size:10px;
+  letter-spacing:-.01em;padding:3px 6px}
+/* Diana's clip-path (sloped NW face) clips the inset hairline off that edge, so paint its
+   outline with a 1px drop-shadow halo that follows the whole silhouette, slope included. */
+.barnard .diana{box-shadow:none;
+  filter:drop-shadow(1px 0 0 var(--bo)) drop-shadow(-1px 0 0 var(--bo))
+         drop-shadow(0 1px 0 var(--bo)) drop-shadow(0 -1px 0 var(--bo))
+         drop-shadow(0 2px 2px rgba(var(--shadow),.16))}
 
 /* library heroes on the map (position/size supplied inline per library) */
 .hero{position:absolute;border-radius:7px;cursor:pointer;z-index:6;border:none;

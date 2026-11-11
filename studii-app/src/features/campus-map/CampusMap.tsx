@@ -224,10 +224,10 @@ export function CampusMap({
     });
 
   // ── The three map scenes (Barnard · Morningside · East Campus) ──────────────
-  // Barnard: a legible, colored plan of the real campus — soft-blue labeled buildings on
-  // one connected green campus lawn (so the gaps between them read as planted paths),
-  // framed by Claremont Ave (west) and Broadway (east), 120th St → 116th St. Milbank wraps
-  // the north over the quad + its circular roundabout; Altschul sits below-left and the
+  // Barnard: a legible plan of the real campus — labeled footprints (same muted fill +
+  // hairline as the CU/Morningside map) on one connected green campus lawn, so the gaps
+  // between them read as planted paths. Framed by Claremont Ave (west) and Broadway (east),
+  // 120th St → 116th St. Milbank wraps the north; Altschul sits below-left and the
   // angular Diana Center upper-east; Milstein (the live hero) holds the left-center column
   // with Futter Field — just open green, labeled — alongside it on the Broadway side;
   // Barnard Hall is below Milstein; the south residence squares (Vagelos / Sulz. Annex /
@@ -239,9 +239,8 @@ export function CampusMap({
       <div className={`${B.ave} ${B.aveL}`}><span>Claremont Ave</span></div>
       <div className={`${B.ave} ${B.aveR}`}><span>Broadway</span></div>
 
-      {/* One connected campus lawn the buildings sit on + the quad's circular roundabout. */}
+      {/* One connected campus lawn the buildings sit on (gaps read as planted paths). */}
       <div className={B.blawn} />
-      <div className={B.bcircle} />
 
       {/* NORTH (120th St): Milbank wraps the top. */}
       <div className={B.cb} style={{ left: "10%", top: "2%", width: "79%", height: "13%" }}>Milbank Hall</div>
