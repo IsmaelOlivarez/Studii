@@ -127,27 +127,45 @@ export function StudiiApp() {
     }
   }, []);
 
-  // Wait for every library's snapshot so the map's rings all render live at once.
-  const ready = LIBRARIES.every((l) => snapshots[l.slug]);
-  if (!ready) {
-    return <div className={styles.device} />;
-  }
-
-  const snapshot = snapshots[activeLibrary.slug];
-  // Canonical date window = the UNION of every library's returned dates (sorted, first
-  // 5). This way each chip means the SAME real date for every library. LibCal omits
-  // whole days for some libraries (see normalize.ts), so a library can lack a date that
-  // another has — that's "no data" for it on that day, NOT free. Deriving the window
-  // from one library would silently shift it when you switch libraries.
+  // Render as soon as ANY library's snapshot has landed — a single slow or failing
+  // library must never hold the whole campus hostage (it used to: the gate required
+  // EVERY snapshot, so one persistent 503 left the user on a blank frame forever).
+  // Libraries still in flight render as muted "updating" rings; the 30s poll fills them
+  // in. Only the truly empty-handed first moment shows the loader below.
+  //
+  // Canonical date window = the UNION of the loaded libraries' returned dates (sorted,
+  // first 5). Each chip means the SAME real date for every library. LibCal omits whole
+  // days for some libraries (see normalize.ts), so a library can lack a date another has
+  // — that's "no data" for it on that day, NOT free. A not-yet-loaded library simply
+  // contributes nothing to the window until its snapshot arrives.
   const dateKeys = [
-    ...new Set(LIBRARIES.flatMap((l) => Object.keys(snapshots[l.slug].days))),
+    ...new Set(LIBRARIES.flatMap((l) => Object.keys(snapshots[l.slug]?.days ?? {}))),
   ]
     .sort()
     .slice(0, 5);
+
+  // Nothing has loaded yet (no snapshot at all) → an on-brand loader instead of a blank
+  // device frame, so first paint always shows the app is doing something.
+  if (dateKeys.length === 0) {
+    return (
+      <div className={styles.device}>
+        <div className={styles.loading}>
+          <div className={styles.loadingMark}>Stud<i>ii</i></div>
+          <div className={styles.loadingTxt}>Loading campus…</div>
+        </div>
+      </div>
+    );
+  }
+
+  // The active library's snapshot may still be loading (its endpoint is flaky, or you
+  // opened it before its first poll landed). Guard every read off it so the detail view
+  // degrades to a small "loading" placeholder rather than crashing on `undefined`.
+  const snapshot = snapshots[activeLibrary.slug];
+  const activeLoaded = !!snapshot;
   const dayKey = dateKeys[dateIdx] ?? dateKeys[0];
   // A day the library's grid never returned is absent → treated as CLOSED (its open
   // window is null). `.rooms` drives availability; `.open` drives hours.
-  const day = snapshot.days[dayKey]?.rooms ?? [];
+  const day = snapshot?.days[dayKey]?.rooms ?? [];
   const f = fmtTime(selMin);
   const selTimeLabel = `${f.str} ${f.mer}`;
   // Date labels keyed to the REAL date, not chip position, so "Today" can never mislabel a
@@ -165,31 +183,36 @@ export function StudiiApp() {
   // from the library's typical hours. Future days (and the closed gaps within them) pass
   // through unchanged.
   const libHours = LIBRARIES.map((lib) => {
-    const raw = snapshots[lib.slug].days[dayKey]?.open ?? [];
-    const typical = typicalWindow(
-      Object.values(snapshots[lib.slug].days).map((d) => d.open ?? []),
-    );
+    const snap = snapshots[lib.slug];
+    if (!snap) return [] as OpenHours; // still loading → no hours (so it reads as not-open)
+    const raw = snap.days[dayKey]?.open ?? [];
+    const typical = typicalWindow(Object.values(snap.days).map((d) => d.open ?? []));
     return displayHours(raw, isToday, nowMin, typical);
   });
-  const libDays = LIBRARIES.map((lib) => snapshots[lib.slug].days[dayKey]?.rooms ?? []);
+  const libDays = LIBRARIES.map((lib) => snapshots[lib.slug]?.days[dayKey]?.rooms ?? []);
   // Booking cap for a library at a given minute = the end of the OPEN INTERVAL covering it
   // (so a room can't be booked across a closed gap or past close). Computed per-minute
   // because the segments sample many times, not just selMin.
   const capAt = (i: number, t: number) => closeAfter(libHours[i], t) || DAY_END;
   const libStats = LIBRARIES.map((library, i) => {
-    const closed = !isOpenAt(libHours[i], selMin);
-    const opensMin = opensLaterToday(libHours[i], selMin);
+    // No snapshot yet → "pending": distinct from closed (we don't KNOW it's closed), so
+    // it shows a muted "updating" ring rather than a false ✕, and drops out of the campus
+    // tallies (libHours[i] is empty → not-open) the same way a closed library does.
+    const pending = !snapshots[library.slug];
+    const closed = !pending && !isOpenAt(libHours[i], selMin);
+    const opensMin = pending ? null : opensLaterToday(libHours[i], selMin);
     const fo = opensMin != null ? fmtTime(opensMin) : null;
-    const free = closed ? 0 : freeCount(libDays[i], selMin, capAt(i, selMin), want);
+    const free = pending || closed ? 0 : freeCount(libDays[i], selMin, capAt(i, selMin), want);
     // When nothing is bookable right now, answer "so when CAN I?" — the soonest minute a
     // room frees up for the desired length (or the library reopens with one). null = none today.
-    const nf = free === 0 ? nextFreeMinute(libDays[i], selMin, libHours[i], want) : null;
+    const nf = !pending && free === 0 ? nextFreeMinute(libDays[i], selMin, libHours[i], want) : null;
     const nff = nf != null ? fmtTime(nf) : null;
     return {
       library,
       free,
       total: library.rooms.length,
       closed,
+      pending,
       opensLabel: fo ? `${fo.str}${fo.mer}` : null,
       nextFree: nf,
       nextFreeLabel: nff ? `${nff.str}${nff.mer}` : null,
@@ -219,10 +242,10 @@ export function StudiiApp() {
   // Detail view: the active library's OPEN INTERVALS for this day (empty = closed all day),
   // repaired for today the same way as the map (see libHours).
   const detailHours = displayHours(
-    snapshot.days[dayKey]?.open ?? [],
+    snapshot?.days[dayKey]?.open ?? [],
     isToday,
     nowMin,
-    typicalWindow(Object.values(snapshot.days).map((d) => d.open ?? [])),
+    typicalWindow(Object.values(snapshot?.days ?? {}).map((d) => d.open ?? [])),
   );
   const detailClosed = !isOpenAt(detailHours, selMin);
   const detailOpensMin = opensLaterToday(detailHours, selMin);
@@ -295,7 +318,9 @@ export function StudiiApp() {
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /><path d="M12 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><circle cx="12" cy="7.5" r="1.2" fill="currentColor" /></svg>
                 </button>
               </div>
-              {detailClosed ? (
+              {!activeLoaded ? (
+                <p className={styles.dcount}>Updating…</p>
+              ) : detailClosed ? (
                 <p className={styles.dclosed}>
                   {detailOpensLabel ? `Closed · opens ${detailOpensLabel.str}${detailOpensLabel.mer}` : "Closed"}
                 </p>
@@ -320,10 +345,16 @@ export function StudiiApp() {
             </button>
           </div>
           <div className={styles.scroll}>
-            <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} want={want} onRoomClick={setActiveRoom} />
-            <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={onSelectDate} />
-            <TimeBar day={day} total={activeLibrary.rooms.length} open={detailHours} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} axisStart={detailAxisStart} axisEnd={detailAxisEnd} want={want} />
-            <div style={{ height: 14 }} />
+            {activeLoaded ? (
+              <>
+                <FloorPlan library={activeLibrary} day={day} selMin={selMin} closed={detailClosed} closeMin={detailCloseMin} want={want} onRoomClick={setActiveRoom} />
+                <DateChips dateKeys={dateKeys} activeIdx={dateIdx} onSelect={onSelectDate} />
+                <TimeBar day={day} total={activeLibrary.rooms.length} open={detailHours} selMin={selMin} onChange={onScrub} isToday={isToday} nowMin={nowMin} live={live} onNow={onNow} showNow={false} showCount={false} nextFree={detailNextFree} onJump={jumpTo} axisStart={detailAxisStart} axisEnd={detailAxisEnd} want={want} />
+                <div style={{ height: 14 }} />
+              </>
+            ) : (
+              <div className={styles.dloading}>Loading this library…</div>
+            )}
           </div>
         </section>
 

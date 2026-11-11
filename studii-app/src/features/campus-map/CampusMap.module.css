@@ -167,7 +167,13 @@
 /* closed: grey, no pulse */
 .ringClosed::before{display:none}
 .ringClosed .cnt{font-size:15px;opacity:.75}
+/* pending (snapshot still loading): grey, no color pulse, but the ring itself breathes
+   so it reads as "working" rather than "closed". */
+.ringPending::before{display:none}
+.ringPending{animation:ringBreathe 1.5s ease-in-out infinite}
+.ringPending .cnt{font-size:16px;opacity:.6;letter-spacing:.04em}
 @keyframes pulse{0%{transform:scale(.92);opacity:.5}70%{opacity:0}100%{transform:scale(1.55);opacity:0}}
+@keyframes ringBreathe{0%,100%{opacity:.5}50%{opacity:.9}}
 
 /* summary cards (one per live library) */
 .cards{display:flex;flex-direction:column;gap:12px;margin:6px 20px max(22px,calc(env(safe-area-inset-bottom) + 10px))}

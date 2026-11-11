@@ -14,6 +14,7 @@ export interface LibStat {
   free: number;
   total: number;
   closed: boolean; // library is closed at the selected time (incl. absent-grid days)
+  pending?: boolean; // snapshot hasn't loaded yet → show a muted "updating" beacon
   opensLabel: string | null; // e.g. "9:00am" if it opens later that day, else null
   nextFree: number | null; // soonest minute a room frees up when 0 open now (else null)
   nextFreeLabel: string | null; // formatted nextFree, e.g. "6:00pm"
@@ -158,15 +159,15 @@ export function CampusMap({
   // libraries (Morningside; East Campus once Lehman lands) — a campus with no PLACEMENT
   // entry for a lib simply draws nothing.
   const renderHeroes = (campusLibs: LibStat[]) =>
-    campusLibs.map(({ library, free, total, closed }) => {
+    campusLibs.map(({ library, free, total, closed, pending }) => {
       const place = PLACEMENT[library.slug];
       if (!place) return null;
-      const color = closed ? "var(--ink-faint)" : statusOf(free, total).color;
+      const color = pending || closed ? "var(--ink-faint)" : statusOf(free, total).color;
       return (
         <Fragment key={library.slug}>
           {/* The count ring is a tap target too (not just the hero card). */}
           <button
-            className={`${B.ring} ${closed ? B.ringClosed : ""}`}
+            className={`${B.ring} ${pending ? B.ringPending : closed ? B.ringClosed : ""}`}
             style={{
               "--ring-color": color,
               left: place.ring.left,
@@ -174,9 +175,13 @@ export function CampusMap({
               boxShadow: `0 8px 18px -6px rgba(var(--shadow),.5), 0 0 0 3px ${color}`,
             } as React.CSSProperties}
             onClick={() => onEnter(library)}
-            aria-label={`Open ${library.name} — ${closed ? "closed" : `${free} of ${total} open`}`}
+            aria-label={
+              pending
+                ? `${library.name} — updating`
+                : `Open ${library.name} — ${closed ? "closed" : `${free} of ${total} open`}`
+            }
           >
-            <span className={B.cnt} style={{ color }}>{closed ? "✕" : free}</span>
+            <span className={B.cnt} style={{ color }}>{pending ? "…" : closed ? "✕" : free}</span>
           </button>
           <button
             className={`${B.hero} ${B[library.slug]}`}
@@ -195,8 +200,9 @@ export function CampusMap({
             ) : (
               <>
                 {/* Marks this as one of the few LIVE, tappable buildings among the
-                    decorative campus — the rest are static scenery. */}
-                <span className={B.live}><i />Live</span>
+                    decorative campus — the rest are static scenery. Hidden while the
+                    snapshot is still loading (no live data to stand behind yet). */}
+                {!pending && <span className={B.live}><i />Live</span>}
                 {place.motif === "pillars" ? (
                   <div className={B.pillars}><i /><i /><i /><i /><i /><i /></div>
                 ) : place.motif === "dome" ? (
@@ -363,22 +369,25 @@ export function CampusMap({
     campusLibs.length === 0 ? (
       <p className={B.emptyCards}>No live libraries here yet</p>
     ) : (
-      campusLibs.map(({ library, free, total, closed, opensLabel, nextFreeLabel }) => {
+      campusLibs.map(({ library, free, total, closed, pending, opensLabel, nextFreeLabel }) => {
         const { cls, color, word } = statusOf(free, total);
-        const statusColor = closed ? "var(--ink-soft)" : color;
+        const statusColor = pending || closed ? "var(--ink-soft)" : color;
         // When nothing's bookable now, lead with the answer to "so when CAN I?" — the
-        // soonest a room opens up. Closed libraries already say when they reopen.
-        const tail = closed
-          ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}`
-          : free === 0
-            ? nextFreeLabel
-              ? `Full ${whenLabel} · next free ${nextFreeLabel}`
-              : `Fully booked ${whenLabel}`
-            : `${word} ${whenLabel}`;
+        // soonest a room opens up. Closed libraries already say when they reopen; a
+        // not-yet-loaded library just says it's updating.
+        const tail = pending
+          ? "Updating…"
+          : closed
+            ? `Closed${opensLabel ? ` · opens ${opensLabel}` : ""}`
+            : free === 0
+              ? nextFreeLabel
+                ? `Full ${whenLabel} · next free ${nextFreeLabel}`
+                : `Fully booked ${whenLabel}`
+              : `${word} ${whenLabel}`;
         return (
           <button key={library.slug} className={B.sumcard} onClick={() => onEnter(library)}>
-            <div className={B.stat} style={{ background: closed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
-              <b style={{ color: statusColor }}>{closed ? "✕" : free}</b><em>OF {total}</em>
+            <div className={B.stat} style={{ background: pending || closed ? "var(--paper-2)" : `var(--${cls}-soft)` }}>
+              <b style={{ color: statusColor }}>{pending ? "…" : closed ? "✕" : free}</b><em>OF {total}</em>
             </div>
             <div className={B.meta}>
               <h3>{library.name}</h3>
