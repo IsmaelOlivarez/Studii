@@ -100,8 +100,8 @@ const PLACEMENT: Record<
   // as the live beacon so the name shows below; book-spines motif (Barnard Library lives
   // on Milstein's 2nd–4th floors).
   milstein: {
-    hero: { left: "21%", top: "38%", width: "24%", height: "18%" },
-    ring: { left: "33%", top: "38.5%" }, // top-center beacon so the name shows below
+    hero: { left: "11%", top: "38%", width: "28%", height: "19%" },
+    ring: { left: "25%", top: "38.5%" }, // top-center beacon so the name shows below
     motif: "book",
   },
 };
@@ -224,44 +224,46 @@ export function CampusMap({
     });
 
   // ── The three map scenes (Barnard · Morningside · East Campus) ──────────────
-  // Barnard: a NARROW north–south block framed by Claremont Ave (west) and Broadway
-  // (east, the Main Gate), running 120th St → 116th St. Footprints trace the real campus
-  // map: Milbank wraps the north around its courtyard green; Altschul sits below-left and
-  // the angular Diana Center upper-east; Milstein (the live hero) holds the left-center
-  // column with Futter Field — the signature lawn — alongside it on the Broadway side;
-  // Barnard Hall is directly below Milstein; the south cluster (Vagelos + Sulz. Annex
-  // over the Arthur Ross Courtyard, Sulzberger on Broadway, Hewitt on Claremont, Brooks +
-  // Reid across the bottom) fills 116th St. Milstein is the live library hero; rest is scenery.
+  // Barnard: a legible, colored plan of the real campus — soft-blue labeled buildings on
+  // one connected green campus lawn (so the gaps between them read as planted paths),
+  // framed by Claremont Ave (west) and Broadway (east), 120th St → 116th St. Milbank wraps
+  // the north over the quad + its circular roundabout; Altschul sits below-left and the
+  // angular Diana Center upper-east; Milstein (the live hero) holds the left-center column
+  // with Futter Field — just open green, labeled — alongside it on the Broadway side;
+  // Barnard Hall is below Milstein; the south residence squares (Vagelos / Sulz. Annex /
+  // Hewitt / Brooks / Reid) are blank blue footprints with Sulzberger labeled on Broadway.
+  // Scoped via `.barnard` so the muted Morningside / East-Campus maps are untouched.
   const barnardMap = (
-    <div className={B.mapWrap}>
-      {/* The two avenues that pinch the campus into its narrow strip. */}
+    <div className={`${B.mapWrap} ${B.barnard}`}>
+      {/* Claremont Ave (west) + Broadway (east) — vertical labels on the cream margins. */}
       <div className={`${B.ave} ${B.aveL}`}><span>Claremont Ave</span></div>
       <div className={`${B.ave} ${B.aveR}`}><span>Broadway</span></div>
 
-      {/* Signature greens: Milbank's internal courtyard (drawn OVER Milbank, z above it),
-          Futter Field — the big lawn on the Broadway side — and the Arthur Ross Courtyard. */}
-      <div className={B.zone} style={{ left: "35%", top: "7%", width: "22%", height: "7%", borderRadius: "5px", zIndex: 4 }} />
-      <div className={B.zone} style={{ left: "54%", top: "40%", width: "30%", height: "30%", borderRadius: "7px" }} />
-      <div className={B.zone} style={{ left: "34%", top: "85%", width: "15%", height: "8%", borderRadius: "6px" }} />
+      {/* One connected campus lawn the buildings sit on + the quad's circular roundabout. */}
+      <div className={B.blawn} />
+      <div className={B.bcircle} />
 
-      {/* NORTH (120th St): Milbank wraps the top around its courtyard; Altschul below-left;
-          the Diana Center's angular slab upper-east, taller and reaching toward Futter Field. */}
-      <div className={B.cb} style={{ left: "12%", top: "3%", width: "70%", height: "15%" }}>Milbank Hall</div>
-      <div className={B.cb} style={{ left: "21%", top: "23%", width: "16%", height: "13%" }}>Altschul Hall</div>
-      <div className={`${B.cb} ${B.diana}`} style={{ left: "52%", top: "21%", width: "22%", height: "21%" }}>Diana Center</div>
+      {/* NORTH (120th St): Milbank wraps the top. */}
+      <div className={B.cb} style={{ left: "10%", top: "2%", width: "79%", height: "13%" }}>Milbank Hall</div>
 
-      {/* CENTER: Barnard Hall directly below Milstein (the live hero, drawn last over its
-          real footprint in the left-center column). */}
-      <div className={B.cb} style={{ left: "23%", top: "58%", width: "23%", height: "13%" }}>Barnard Hall</div>
+      {/* MIDDLE: Altschul (left column) + the angular Diana Center (Broadway side). */}
+      <div className={B.cb} style={{ left: "11%", top: "23%", width: "28%", height: "13%" }}>Altschul Hall</div>
+      <div className={`${B.cb} ${B.diana}`} style={{ left: "51%", top: "22%", width: "34%", height: "15%" }}>Diana Center</div>
 
-      {/* SOUTH (116th St): Vagelos + Sulz. Annex over the Arthur Ross Courtyard, Sulzberger
-          on the Broadway side; Hewitt on Claremont; Brooks + Reid spanning the bottom. */}
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "21%", top: "73%", width: "11%", height: "10%" }}>Vagelos</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "33%", top: "73%", width: "10%", height: "10%" }}>Sulz. Annex</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "56%", top: "72%", width: "22%", height: "13%" }}>Sulzberger Hall</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "21%", top: "85%", width: "11%", height: "12%" }}>Hewitt Hall</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "50%", top: "86%", width: "15%", height: "11%" }}>Brooks Hall</div>
-      <div className={`${B.cb} ${B.lt}`} style={{ left: "66%", top: "86%", width: "16%", height: "11%" }}>Reid Hall</div>
+      {/* Futter Field — just the open green, labeled (Milstein hero sits to its left). */}
+      <div className={B.bfield} style={{ left: "51%", top: "40%", width: "34%", height: "28%" }}>Futter Field</div>
+
+      {/* CENTER-LEFT: Barnard Hall directly below Milstein (the live hero, drawn last). */}
+      <div className={B.cb} style={{ left: "11%", top: "59%", width: "28%", height: "12%" }}>Barnard Hall</div>
+
+      {/* SOUTH (116th St): Sulzberger labeled on the Broadway side; the residence squares
+          are blank blue footprints with the green lawn showing between them. */}
+      <div className={B.cb} style={{ left: "49%", top: "72%", width: "36%", height: "9%" }}>Sulzberger Hall</div>
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "11%", top: "73%", width: "13%", height: "10%" }} />
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "26%", top: "73%", width: "13%", height: "10%" }} />
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "11%", top: "85%", width: "13%", height: "11%" }} />
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "47%", top: "85%", width: "16%", height: "11%" }} />
+      <div className={`${B.cb} ${B.lt}`} style={{ left: "65%", top: "85%", width: "20%", height: "11%" }} />
 
       {/* Live library hero: Milstein (Barnard Library), over its left-center footprint. */}
       {renderHeroes(libsByCampus("barnard"))}
