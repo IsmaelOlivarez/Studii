@@ -242,8 +242,10 @@ export function CampusMap({
       {/* One connected campus lawn the buildings sit on (gaps read as planted paths). */}
       <div className={B.blawn} />
 
-      {/* NORTH (120th St): Milbank wraps the top. */}
-      <div className={B.cb} style={{ left: "10%", top: "2%", width: "79%", height: "13%" }}>Milbank Hall</div>
+      {/* NORTH (120th St): Milbank wraps the top, bracketing the central quad — the green
+          `.bquad` courtyard shows through its bottom-center notch (revealed by the clip-path). */}
+      <div className={B.bquad} style={{ left: "34%", top: "9%", width: "31%", height: "8%" }} />
+      <div className={`${B.cb} ${B.milbank}`} style={{ left: "10%", top: "2%", width: "79%", height: "13%" }}>Milbank Hall</div>
 
       {/* MIDDLE: Altschul (left column) + the angular Diana Center (Broadway side). */}
       <div className={B.cb} style={{ left: "11%", top: "23%", width: "28%", height: "13%" }}>Altschul Hall</div>
