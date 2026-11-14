@@ -269,7 +269,9 @@ export function StudiiApp() {
     <div className={`${styles.device} ${view === "detail" ? styles.showDetail : ""}`}>
       <div className={styles.screens}>
         <section className={`${styles.screen} ${styles.mapScreen}`}>
-          <div className={styles.scroll}>
+          {/* Non-scrolling flex column: the map stays pinned + fully visible at any
+              viewport height (the map viewport flexes to fill the leftover space). */}
+          <div className={styles.mapBody}>
             <CampusMap
               libs={libStats}
               onEnter={(library) => {

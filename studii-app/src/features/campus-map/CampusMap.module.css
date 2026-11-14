@@ -1,20 +1,37 @@
-.brand{padding:max(16px,calc(env(safe-area-inset-top) + 6px)) 26px 0;display:flex;align-items:flex-end;justify-content:space-between}
+.brand{flex:0 0 auto;padding:max(16px,calc(env(safe-area-inset-top) + 6px)) 26px 0;display:flex;align-items:flex-end;justify-content:space-between}
 .brand h1{font-family:var(--font-display);font-weight:600;font-size:30px;letter-spacing:-.02em;line-height:.9}
 .brand h1 i{font-style:italic;font-weight:500}
 .loc{text-align:right;font-size:10px;line-height:1.3;color:var(--ink-faint);font-weight:600;text-transform:uppercase;letter-spacing:.1em}
 
 /* shared date + time controls on the map */
-.maptime{margin-top:12px}
+.maptime{flex:0 0 auto;margin-top:12px}
 
-/* swipeable 3-campus carousel (Barnard · Morningside · East Campus) */
-.carousel{position:relative;--map-h:clamp(420px,52vh,520px)}
+/* swipeable 3-campus carousel (Barnard · Morningside · East Campus). A flex column that
+   fills the map screen: the map viewport (.mapView) flexes to take all leftover space so
+   the map is always pinned + fully visible; the dots and cards sit at natural height. */
+.carousel{position:relative;display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
 .viewport{overflow:hidden}
 .track{display:flex;transition:transform .42s cubic-bezier(.4,.9,.3,1);will-change:transform;touch-action:pan-y}
 .panel{flex:0 0 100%;min-width:0}
+/* The map viewport takes the leftover space, but is capped so its height never exceeds
+   what its width allows: the plan keeps a FIXED aspect ratio (set on .mapWrap) and simply
+   scales to fit — so it never distorts (squashes) on a short viewport, it just gets a bit
+   smaller and keeps its shape. The cap = (device width − side gutters) ÷ aspect. */
+.mapView{position:relative;flex:3 1 0;min-height:0;padding-block:4px;
+  max-height:calc((min(100vw,430px) - 40px) * 8 / 7)}
+.mapView .track{height:100%}
+.mapView .panel{height:100%}
+/* the cards get the smaller share below the map (so the map stays large and reaches full
+   width when the viewport allows); a campus with more cards than fit (Morningside) scrolls
+   on its own. Off-screen campus panels collapse so the scroll never shows the empty tail
+   of a taller card stack. */
+.cardsView{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.cardsView::-webkit-scrollbar{display:none}
+.cardsView .panel[aria-hidden="true"]{max-height:0;overflow:hidden}
 
 /* tall, skinny, deliberately faint edge arrows — a hint, not a shout. Tappable;
-   vertically centered on the MAP (not the cards below), each hidden at its end. */
-.arrow{position:absolute;top:calc(10px + var(--map-h) / 2);transform:translateY(-50%);
+   vertically centered on the MAP viewport, each hidden at its end. */
+.arrow{position:absolute;top:50%;transform:translateY(-50%);
   z-index:9;width:20px;height:72px;padding:0;border:none;background:transparent;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:.2;transition:opacity .2s}
 .arrow:hover{opacity:.5}
@@ -26,7 +43,7 @@
 .arrow svg{width:11px;height:48px}
 
 /* page dots — which campus you're on (the active one stretches into a pill) */
-.dots{display:flex;gap:7px;justify-content:center;align-items:center;margin:7px 0 4px}
+.dots{flex:0 0 auto;display:flex;gap:7px;justify-content:center;align-items:center;margin:7px 0 4px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);opacity:.4;
   border:none;padding:0;cursor:pointer;transition:width .25s,opacity .25s,background .25s}
 .dotOn{width:18px;border-radius:3px;opacity:1;background:var(--accent)}
@@ -35,8 +52,11 @@
 .emptyCards{text-align:center;color:var(--ink-faint);font-family:var(--font-mono);
   font-weight:600;font-size:11px;line-height:1.3;letter-spacing:.08em;text-transform:uppercase;padding:20px 0 4px}
 
-/* campus map — a soft light-from-top ground with a gentle inner vignette for depth */
-.mapWrap{margin:10px 20px 6px;position:relative;height:var(--map-h);border-radius:var(--radius);
+/* campus map — a soft light-from-top ground with a gentle inner vignette for depth.
+   A FIXED 7:8 aspect box so the plan (positioned in %) never distorts; it fills the
+   capped .mapView height and derives its width from that, centered with ~20px gutters. */
+.mapWrap{aspect-ratio:7 / 8;height:100%;width:auto;max-width:calc(100% - 40px);margin:0 auto;
+  position:relative;min-width:0;border-radius:var(--radius);
   background:radial-gradient(130% 95% at 50% -5%, color-mix(in srgb, var(--card) 45%, var(--campus-ground)), var(--campus-ground) 68%);
   overflow:hidden;
   box-shadow:inset 0 0 0 1px var(--line), inset 0 0 52px -14px rgba(var(--shadow),.16), 0 12px 26px -16px rgba(var(--shadow),.5)}

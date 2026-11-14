@@ -27,8 +27,11 @@
 .dloading{padding:64px 22px;text-align:center;color:var(--ink-faint);
   font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;animation:breathe 1.6s ease-in-out infinite}
 
-.screens{position:relative;flex:1 1 auto;overflow:hidden}
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;
+/* `overflow:clip` (not `hidden`) on the screen stack so none of these is a scroll
+   container — otherwise focusing a control low on the map screen lets the browser scroll
+   the brand/header off the top. The detail screen keeps its own `.scroll` region. */
+.screens{position:relative;flex:1 1 auto;overflow:clip}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:clip;
   transition:transform .46s cubic-bezier(.76,0,.24,1), opacity .3s ease, filter .4s ease}
 .mapScreen{transform:translateX(0)}
 .detailScreen{transform:translateX(100%)}
@@ -37,6 +40,13 @@
 
 .scroll{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom)}
 .scroll::-webkit-scrollbar{display:none}
+/* Map screen body: a non-scrolling flex column so the campus map is always pinned and
+   fully visible. CampusMap's own children (brand · time controls · carousel) are the
+   flex items; the carousel's map viewport is what flexes to fill. `overflow:clip` (not
+   `hidden`) so it is NOT a scroll container — otherwise tapping a dot/arrow lets the
+   browser focus-scroll the brand off the top. */
+.mapBody{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;overflow:clip;
+  padding-bottom:env(safe-area-inset-bottom)}
 
 /* detail header */
 .dhead{padding:max(16px,calc(env(safe-area-inset-top) + 6px)) 22px 8px;display:flex;align-items:center;gap:14px;flex:0 0 auto}

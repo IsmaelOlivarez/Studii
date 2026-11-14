@@ -449,7 +449,7 @@ export function CampusMap({
       {/* Swipeable carousel. The maps and the cards are two tracks that slide in sync,
           so the page dots can sit between them — right under the map, always visible. */}
       <div className={`${B.carousel} anim d3`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div className={B.viewport}>
+        <div className={`${B.viewport} ${B.mapView}`}>
           <div className={B.track} style={shift}>
             {maps.map((scene, i) => (
               // `inert` on off-screen campuses keeps their hero/card buttons out of the tab
@@ -485,7 +485,7 @@ export function CampusMap({
           ))}
         </div>
 
-        <div className={B.viewport}>
+        <div className={`${B.viewport} ${B.cardsView}`}>
           <div className={B.track} style={shift}>
             {cards.map((scene, i) => (
               <div className={`${B.panel} ${B.cardPanel}`} key={CAMPUSES[i]} aria-hidden={i !== idx} inert={i !== idx}>
