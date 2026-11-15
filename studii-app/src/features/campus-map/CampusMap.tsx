@@ -373,11 +373,26 @@ export function CampusMap({
 
   // ── The cards beneath each map: live summaries for the campus's libraries, or a quiet
   //    empty line when a campus has none yet. These slide in lockstep with the maps.
+  //    The list is RANKED so the most actionable option is first — libraries with rooms
+  //    free now (most free first), then open-but-full ones that free up soonest, then
+  //    closed, then still-loading. The map rings keep their fixed campus positions; only
+  //    this list reorders, so the top card (the most visible in the scroll strip) is
+  //    always the best current bet.
+  const cardGroup = (l: LibStat) =>
+    l.pending ? 3 : l.free > 0 ? 0 : l.nextFree != null ? 1 : 2;
   const renderCards = (campusLibs: LibStat[]) =>
     campusLibs.length === 0 ? (
       <p className={B.emptyCards}>No live libraries here yet</p>
     ) : (
-      campusLibs.map(({ library, free, total, closed, pending, opensLabel, nextFreeLabel }) => {
+      [...campusLibs]
+        .sort((a, b) => {
+          const ga = cardGroup(a), gb = cardGroup(b);
+          if (ga !== gb) return ga - gb;
+          if (ga === 0) return b.free - a.free; // more rooms free first
+          if (ga === 1) return (a.nextFree ?? 0) - (b.nextFree ?? 0); // frees up soonest first
+          return 0; // closed / pending keep their given order
+        })
+        .map(({ library, free, total, closed, pending, opensLabel, nextFreeLabel }) => {
         const { cls, color, word } = statusOf(free, total);
         const statusColor = pending || closed ? "var(--ink-soft)" : color;
         // When nothing's bookable now, lead with the answer to "so when CAN I?" — the
