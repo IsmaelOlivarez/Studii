@@ -7,4 +7,4 @@
 //   Chip        — pill/segmented control (dates, durations)
 //   Ring        — circular availability badge
 //   StatusDot   — free / limited / full indicator
-export {};
+export { BookMark } from "./BookMark";

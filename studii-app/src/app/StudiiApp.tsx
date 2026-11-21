@@ -9,6 +9,7 @@ import { TimeBar } from "@/features/availability/TimeBar";
 import { DateChips } from "@/features/availability/DateChips";
 import { wantMinutes, type DurationPref } from "@/features/availability/DurationToggle";
 import { RoomSheet } from "@/features/booking/RoomSheet";
+import { BookMark } from "@/components/ui";
 import { BUTLER, LIBRARIES } from "@/lib/libcal/rooms";
 import { DAY_START, DAY_END } from "@/domain/constants";
 import { freeCount, nextFreeMinute } from "@/lib/time/slots";
@@ -150,6 +151,7 @@ export function StudiiApp() {
     return (
       <div className={styles.device}>
         <div className={styles.loading}>
+          <BookMark size={52} className={styles.loadingLogo} />
           <div className={styles.loadingMark}>Stud<i>ii</i></div>
           <div className={styles.loadingTxt}>Loading campus…</div>
         </div>

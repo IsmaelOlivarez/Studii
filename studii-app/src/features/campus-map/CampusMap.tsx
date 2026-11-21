@@ -7,6 +7,7 @@ import { TimeBar } from "@/features/availability/TimeBar";
 import { DurationToggle, type DurationPref } from "@/features/availability/DurationToggle";
 import type { OpenHours } from "@/lib/time/hours";
 import type { Library } from "@/domain/types";
+import { BookMark } from "@/components/ui";
 
 /** One library's headline for the map: how many of its rooms are free at the time. */
 export interface LibStat {
@@ -430,7 +431,10 @@ export function CampusMap({
   return (
     <>
       <div className={`${B.brand} anim d1`}>
-        <h1>Stud<i>ii</i></h1>
+        <div className={B.mark}>
+          <BookMark size={30} className={B.logo} />
+          <h1>Stud<i>ii</i></h1>
+        </div>
         {/* Location label tracks the campus you've swiped to. */}
         <div className={B.loc}>{CAMPUS_LABEL[CAMPUSES[idx]]}</div>
       </div>
